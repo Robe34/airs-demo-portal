@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Crosshair, ScanSearch, Swords, Terminal, Settings, Activity, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Logo } from '../sidebar/Logo'
@@ -39,29 +39,36 @@ const NAV_ITEMS = [
 ]
 
 export function Sidebar() {
+  const [expanded, setExpanded] = useState(false)
   const { state, dispatch } = useAppContext()
   const theme = useProtectionTheme()
 
   const setView = (id) => dispatch({ type: 'SET_VIEW', payload: id })
 
   return (
-    <aside className="flex flex-col w-[260px] flex-shrink-0 h-full border-r border-white/10 bg-base-900/80 backdrop-blur-xl">
+    <motion.aside
+      animate={{ width: expanded ? 260 : 64 }}
+      transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
+      className="flex flex-col flex-shrink-0 h-full border-r border-white/10 bg-base-900/80 backdrop-blur-xl overflow-hidden z-20"
+    >
       {/* Logo */}
-      <div className="px-4 pt-5 pb-4">
-        <Logo />
+      <div className="px-3 pt-5 pb-4 flex-shrink-0">
+        <Logo collapsed={!expanded} />
       </div>
 
       {/* Protection Toggle */}
-      <ProtectionToggle />
+      <ProtectionToggle collapsed={!expanded} />
 
       {/* SCM Console link — appears after first scan */}
       <AnimatePresence>
-        {state.scmUrl && (
+        {state.scmUrl && expanded && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.2 }}
             className="px-3 overflow-hidden"
           >
             <a
@@ -81,12 +88,22 @@ export function Sidebar() {
       </AnimatePresence>
 
       {/* Nav */}
-      <nav className="flex-1 px-3 pt-4 space-y-1 overflow-y-auto">
-        <div className="mb-2 px-2">
-          <span className="text-[9px] font-semibold tracking-[0.2em] text-slate-600 uppercase">
-            Products
-          </span>
-        </div>
+      <nav className="flex-1 px-2 pt-4 space-y-1 overflow-y-auto overflow-x-hidden">
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="mb-2 px-2"
+            >
+              <span className="text-[9px] font-semibold tracking-[0.2em] text-slate-600 uppercase">
+                Products
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
         {NAV_ITEMS.map((item) => (
           <NavItem
             key={item.id}
@@ -96,32 +113,53 @@ export function Sidebar() {
             isActive={state.activeView === item.id}
             onClick={() => setView(item.id)}
             color={item.color}
+            collapsed={!expanded}
           />
         ))}
       </nav>
 
       {/* Footer */}
-      <div className="px-4 pb-4 space-y-3">
+      <div className="px-2 pb-4 space-y-3">
         {/* System health */}
-        <div className={`flex items-center gap-2 p-2.5 rounded-lg border ${theme.primaryBorder2} ${theme.primaryBg2} transition-all duration-500`}>
-          <Activity size={12} className={`${theme.primaryText} transition-colors duration-500`} />
-          <div className="flex-1">
-            <div className={`text-[10px] font-semibold ${theme.primaryText} transition-colors duration-500`}>
-              System Status
-            </div>
-            <div className="text-[10px] text-slate-500">All scanners operational</div>
-          </div>
-          <span className={`w-1.5 h-1.5 rounded-full ${theme.pulseColor} animate-pulse transition-colors duration-500`} />
+        <div className={`flex items-center gap-2 p-2.5 rounded-lg border ${theme.primaryBorder2} ${theme.primaryBg2} transition-all duration-500 ${!expanded ? 'justify-center' : ''}`}>
+          <Activity size={12} className={`${theme.primaryText} flex-shrink-0 transition-colors duration-500`} />
+          <AnimatePresence>
+            {expanded && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.15 }}
+                className="flex-1 min-w-0"
+              >
+                <div className={`text-[10px] font-semibold ${theme.primaryText} transition-colors duration-500`}>
+                  System Status
+                </div>
+                <div className="text-[10px] text-slate-500 whitespace-nowrap">All scanners operational</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {expanded && <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${theme.pulseColor} animate-pulse transition-colors duration-500`} />}
         </div>
 
         {/* Version */}
-        <div className="flex items-center justify-between px-1">
-          <span className="text-[10px] text-slate-600">SUDO AIRS Demo</span>
-          <button className="text-slate-600 hover:text-slate-400 transition-colors">
-            <Settings size={12} />
-          </button>
-        </div>
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="flex items-center justify-between px-1"
+            >
+              <span className="text-[10px] text-slate-600 whitespace-nowrap">SUDO AIRS Demo</span>
+              <button className="text-slate-600 hover:text-slate-400 transition-colors">
+                <Settings size={12} />
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
-    </aside>
+    </motion.aside>
   )
 }

@@ -5,11 +5,32 @@ import { useAppContext } from '../../context/AppContext'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 import { PulsingDot } from '../shared/PulsingDot'
 
-export function ProtectionToggle() {
+export function ProtectionToggle({ collapsed }) {
   const { dispatch } = useAppContext()
   const theme = useProtectionTheme()
 
   const toggle = () => dispatch({ type: 'TOGGLE_PROTECTION' })
+
+  if (collapsed) {
+    return (
+      <div className="px-2 py-3 border-y border-white/10 flex justify-center">
+        <button
+          onClick={toggle}
+          className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-all duration-500
+            ${theme.isProtected ? 'border-emerald-500/40 bg-emerald-500/10' : 'border-red-500/40 bg-red-500/10'}
+          `}
+          aria-label="Toggle protection"
+          title={theme.isProtected ? 'Protected — click to disable' : 'Unprotected — click to enable'}
+        >
+          {theme.isProtected ? (
+            <ShieldCheck size={16} className="text-emerald-400" strokeWidth={2.5} />
+          ) : (
+            <ShieldOff size={16} className="text-red-400" strokeWidth={2.5} />
+          )}
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="px-3 py-4 border-y border-white/10">
