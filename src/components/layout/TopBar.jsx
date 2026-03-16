@@ -6,10 +6,10 @@ import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 import { PulsingDot } from '../shared/PulsingDot'
 
 const VIEW_LABELS = {
-  apiIntercept:  { label: 'API Intercept',                sublabel: 'Real-time payload interception & telemetry' },
-  modelScanning: { label: 'Model Scanning',               sublabel: 'AI model vulnerability assessment' },
-  redTeaming:    { label: 'Red Teaming',                  sublabel: 'Automated adversarial campaign runner' },
-  claudeHooks:   { label: 'AI Code Assistant Protection', sublabel: 'Claude Code hooks integration guide' },
+  apiIntercept:  { label: 'API Intercept',                sublabel: 'Real-time payload interception & telemetry', text: 'text-red-400' },
+  modelScanning: { label: 'Model Scanning',               sublabel: 'AI model vulnerability assessment',          text: 'text-blue-400' },
+  redTeaming:    { label: 'Red Teaming',                  sublabel: 'Automated adversarial campaign runner',      text: 'text-orange-400' },
+  claudeHooks:   { label: 'AI Code Assistant Protection', sublabel: 'Claude Code hooks integration guide',        text: 'text-purple-400' },
 }
 
 export function TopBar() {
@@ -32,7 +32,7 @@ export function TopBar() {
             transition={{ duration: 0.15 }}
             className="flex items-center gap-2"
           >
-            <span className={`text-sm font-semibold ${theme.primaryText} transition-colors duration-500`}>
+            <span className={`text-sm font-semibold ${view.text || theme.primaryText} transition-colors duration-500`}>
               {view.label}
             </span>
             <span className="hidden md:block text-xs text-slate-500">·</span>

@@ -13,24 +13,28 @@ const NAV_ITEMS = [
     label: 'API Intercept',
     sublabel: 'Live payload simulation',
     icon: Crosshair,
+    color: { text: 'text-red-400',    bg: 'bg-red-500/10',    border: 'border-red-500/30',    bar: 'bg-red-400' },
   },
   {
     id: 'modelScanning',
     label: 'Model Scanning',
     sublabel: 'CVE vulnerability scanner',
     icon: ScanSearch,
+    color: { text: 'text-blue-400',   bg: 'bg-blue-500/10',   border: 'border-blue-500/30',   bar: 'bg-blue-400' },
   },
   {
     id: 'redTeaming',
     label: 'Red Teaming',
     sublabel: 'Automated attack campaigns',
     icon: Swords,
+    color: { text: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/30', bar: 'bg-orange-400' },
   },
   {
     id: 'claudeHooks',
     label: 'AI Code Assistant Protection',
     sublabel: 'IDE security integration',
     icon: Terminal,
+    color: { text: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/30', bar: 'bg-purple-400' },
   },
 ]
 
@@ -91,6 +95,7 @@ export function Sidebar() {
             sublabel={item.sublabel}
             isActive={state.activeView === item.id}
             onClick={() => setView(item.id)}
+            color={item.color}
           />
         ))}
       </nav>
