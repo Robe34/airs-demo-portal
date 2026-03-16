@@ -4,6 +4,7 @@ import { MainLayout } from './components/layout/MainLayout'
 import { ApiInterceptView } from './views/ApiInterceptView'
 import { ModelScanningView } from './views/ModelScanningView'
 import { RedTeamingView } from './views/RedTeamingView'
+import { ClaudeHooksView } from './views/ClaudeHooksView'
 import { HomeView } from './views/HomeView'
 
 function AppContent() {
@@ -18,6 +19,7 @@ function AppContent() {
       case 'apiIntercept':   return <ApiInterceptView />
       case 'modelScanning':  return <ModelScanningView />
       case 'redTeaming':     return <RedTeamingView />
+      case 'claudeHooks':    return <ClaudeHooksView />
       default:               return <ApiInterceptView />
     }
   }

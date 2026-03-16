@@ -1,5 +1,5 @@
 import React from 'react'
-import { Crosshair, ScanSearch, Swords, Settings, Activity, ExternalLink } from 'lucide-react'
+import { Crosshair, ScanSearch, Swords, Terminal, Settings, Activity, ExternalLink } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Logo } from '../sidebar/Logo'
 import { ProtectionToggle } from '../sidebar/ProtectionToggle'
@@ -25,6 +25,12 @@ const NAV_ITEMS = [
     label: 'Red Teaming',
     sublabel: 'Automated attack campaigns',
     icon: Swords,
+  },
+  {
+    id: 'claudeHooks',
+    label: 'AI Code Assistant Protection',
+    sublabel: 'IDE security integration',
+    icon: Terminal,
   },
 ]
 
