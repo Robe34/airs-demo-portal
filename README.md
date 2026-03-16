@@ -2,9 +2,9 @@
 
 **Created by Sergei (SUDO) Udovenko, Palo Alto Networks**
 
-An interactive demo that shows how **Prisma AI Runtime Security (AIRS)** protects AI applications from attacks — and what happens when it doesn't. Toggle protection on and off in real time to compare a vulnerable deployment against a secured one, using live LLMs on Google Vertex AI and AWS Bedrock.
+An interactive demo that shows how **Prisma AI Runtime Security (AIRS)** protects AI applications from attacks — and what happens when it doesn't. Toggle protection on and off in real time to compare a vulnerable deployment against a secured one, using live LLMs on Google Vertex AI and AWS Bedrock. Includes a fourth pillar demonstrating real-time AIRS protection for AI code assistants (Claude Code) via native CLI hooks.
 
-![Home screen — three pillars](docs/screenshot-home.png)
+![Home screen — four pillars](docs/sudo-demo-portal.png)
 
 ![API Intercept — DAN attack blocked by AIRS](docs/screenshot-api-intercept.png)
 
@@ -14,7 +14,7 @@ An interactive demo that shows how **Prisma AI Runtime Security (AIRS)** protect
 
 AI systems face security threats that traditional tools weren't built for: malicious prompts designed to manipulate model behavior, compromised model files distributed through public registries, and adversarial inputs that slowly erode a model's guardrails across a conversation. This demo makes those threats tangible and shows how AIRS addresses each one.
 
-The demo is built around three pillars, each accessible from the home screen:
+The demo is built around four pillars, each accessible from the home screen:
 
 ### Pillar 1 — API Intercept
 
@@ -39,6 +39,19 @@ You can submit a model two ways: paste a HuggingFace model URI (e.g. `org/model-
 Runs automated adversarial campaigns across multiple attack categories — DAN variants, role-play escapes, multi-turn manipulation — and tracks how well the model holds up over time via a robustness score gauge.
 
 > The Red Teaming pillar is UI-simulated (no backend calls). Campaign logs and the gauge are generated client-side. This lets it run without additional credentials and keeps the focus on the campaign interface and reporting UX.
+
+### Pillar 4 — AI Code Assistant Protection
+
+Demonstrates how to protect the **Claude Code CLI** using Prisma AIRS native hook scripts — with zero changes to Claude Code or any application code. Four hook scripts intercept every surface of a Claude Code session:
+
+| Hook | Script | What it scans |
+|------|--------|---------------|
+| `UserPromptSubmit` | `scan-user-input.sh` | Every user message before Claude sees it |
+| `PreToolUse` (WebFetch/WebSearch) | `scan-url.sh` | URLs before they are fetched |
+| `PreToolUse` (MCP tools) | `scan-mcp-request.sh` | MCP tool parameters |
+| `PostToolUse` | `scan-response-enhanced.sh` | Tool responses before Claude reads them |
+
+The pillar includes a full integration guide with a visual architecture diagram, six AI-specific attack scenarios with test commands (prompt injection, DLP, EICAR, indirect injection, URL attacks, MCP content attacks), setup instructions, and a suggested demo script.
 
 ---
 
