@@ -10,17 +10,30 @@ const DEFAULT_MODELS = {
   bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
 }
 
-const MIN_WIDTH = 220
-const MAX_WIDTH = 600
-const DEFAULT_WIDTH = 320
+const MIN_SIDEBAR  = 220
+const MAX_SIDEBAR  = 600
+const DEFAULT_RIGHT = 320
+
+const MIN_LIBRARY  = 180
+const MAX_LIBRARY  = 480
+const DEFAULT_LEFT  = 260
 
 export function ApiInterceptView() {
   const [backend, setBackend] = useState('vertex')
   const [model, setModel] = useState(DEFAULT_MODELS.vertex)
-  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_WIDTH)
+
+  // Right telemetry sidebar
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_RIGHT)
   const [isDragging, setIsDragging] = useState(false)
   const dragStartX = useRef(0)
   const dragStartWidth = useRef(0)
+
+  // Left attack library
+  const [libraryWidth, setLibraryWidth] = useState(DEFAULT_LEFT)
+  const [isLibDragging, setIsLibDragging] = useState(false)
+  const libDragStartX = useRef(0)
+  const libDragStartWidth = useRef(0)
+
   const theme = useProtectionTheme()
 
   const { messages, activeTelemetry, isLoading, sendAttack, sendMessage, clearChat } = useAttackSimulator()
@@ -34,6 +47,7 @@ export function ApiInterceptView() {
     sendAttack(attack, backend, model)
   }
 
+  // Right handle
   const onMouseDown = useCallback((e) => {
     e.preventDefault()
     dragStartX.current = e.clientX
@@ -43,30 +57,43 @@ export function ApiInterceptView() {
 
   useEffect(() => {
     if (!isDragging) return
-
     const onMouseMove = (e) => {
       const delta = dragStartX.current - e.clientX
-      const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, dragStartWidth.current + delta))
-      setSidebarWidth(newWidth)
+      setSidebarWidth(Math.min(MAX_SIDEBAR, Math.max(MIN_SIDEBAR, dragStartWidth.current + delta)))
     }
-
     const onMouseUp = () => setIsDragging(false)
-
     window.addEventListener('mousemove', onMouseMove)
     window.addEventListener('mouseup', onMouseUp)
-    return () => {
-      window.removeEventListener('mousemove', onMouseMove)
-      window.removeEventListener('mouseup', onMouseUp)
-    }
+    return () => { window.removeEventListener('mousemove', onMouseMove); window.removeEventListener('mouseup', onMouseUp) }
   }, [isDragging])
+
+  // Left handle
+  const onLibMouseDown = useCallback((e) => {
+    e.preventDefault()
+    libDragStartX.current = e.clientX
+    libDragStartWidth.current = libraryWidth
+    setIsLibDragging(true)
+  }, [libraryWidth])
+
+  useEffect(() => {
+    if (!isLibDragging) return
+    const onMouseMove = (e) => {
+      const delta = e.clientX - libDragStartX.current
+      setLibraryWidth(Math.min(MAX_LIBRARY, Math.max(MIN_LIBRARY, libDragStartWidth.current + delta)))
+    }
+    const onMouseUp = () => setIsLibDragging(false)
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', onMouseUp)
+    return () => { window.removeEventListener('mousemove', onMouseMove); window.removeEventListener('mouseup', onMouseUp) }
+  }, [isLibDragging])
 
   return (
     <div
       className="flex h-full overflow-hidden"
-      style={{ cursor: isDragging ? 'col-resize' : 'default', userSelect: isDragging ? 'none' : 'auto' }}
+      style={{ cursor: isDragging || isLibDragging ? 'col-resize' : 'default', userSelect: isDragging || isLibDragging ? 'none' : 'auto' }}
     >
-      {/* Left: Attack Library + Model Selector — 260px fixed */}
-      <div className="w-[260px] flex-shrink-0 border-r border-white/10 overflow-hidden">
+      {/* Left: Attack Library — resizable */}
+      <div className="flex-shrink-0 border-r border-white/10 overflow-hidden" style={{ width: libraryWidth }}>
         <AttackLibrary
           onSelectAttack={handleSelectAttack}
           backend={backend}
@@ -74,6 +101,22 @@ export function ApiInterceptView() {
           onBackendChange={handleBackendChange}
           onModelChange={setModel}
         />
+      </div>
+
+      {/* Left resize handle */}
+      <div
+        onMouseDown={onLibMouseDown}
+        className="relative flex-shrink-0 w-1 group cursor-col-resize"
+      >
+        <div className="absolute inset-y-0 -left-1.5 -right-1.5 z-10" />
+        <div className={`h-full w-full transition-colors duration-150 ${
+          isLibDragging
+            ? theme.isProtected ? 'bg-emerald-500/60' : 'bg-red-500/60'
+            : 'bg-white/10 group-hover:' + (theme.isProtected ? 'bg-emerald-500/40' : 'bg-red-500/40')
+        }`} />
+        <div className="absolute inset-y-0 left-1/2 -translate-x-1/2 flex flex-col items-center justify-center gap-1 pointer-events-none">
+          {[0,1,2].map(i => <div key={i} className="w-0.5 h-0.5 rounded-full bg-white/20" />)}
+        </div>
       </div>
 
       {/* Center: Chat — flex-1 */}

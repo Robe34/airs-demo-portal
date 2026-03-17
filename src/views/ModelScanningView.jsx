@@ -89,6 +89,40 @@ export function ModelScanningView() {
   const [result, setResult]       = useState(null)
   const [errorMsg, setErrorMsg]   = useState('')
 
+  // Resizable JSON panel — default 1/3 of container
+  const containerRef = useRef(null)
+  const [jsonWidth, setJsonWidth] = useState(null) // null = use 1/3 default
+  const isDragging = useRef(false)
+  const dragStart  = useRef({ x: 0, w: 0 })
+
+  const onDragStart = (e) => {
+    isDragging.current = true
+    const currentW = jsonWidth ?? Math.round((containerRef.current?.offsetWidth ?? 1200) / 3)
+    dragStart.current  = { x: e.clientX, w: currentW }
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }
+
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!isDragging.current) return
+      const delta = dragStart.current.x - e.clientX
+      const next  = Math.min(800, Math.max(240, dragStart.current.w + delta))
+      setJsonWidth(next)
+    }
+    const onUp = () => {
+      isDragging.current = false
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [])
+
   const progressRef = useRef(null)
 
   const startProgressTick = () => {
@@ -412,7 +446,7 @@ export function ModelScanningView() {
         )}
 
         {/* ── 2-column: violations + raw JSON ── */}
-        <div className="flex-1 overflow-hidden flex gap-0 min-h-0">
+        <div ref={containerRef} className="flex-1 overflow-hidden flex gap-0 min-h-0">
           {scanState === 'complete' && result ? (
             <>
               {/* Violations */}
@@ -456,8 +490,20 @@ export function ModelScanningView() {
                 </div>
               </div>
 
-              {/* Raw JSON */}
-              <div className="w-[420px] flex-shrink-0 flex flex-col overflow-hidden">
+              {/* Drag handle */}
+              <div
+                onMouseDown={onDragStart}
+                className="w-1 flex-shrink-0 cursor-col-resize group relative hover:bg-blue-500/30 transition-colors duration-150 border-r border-white/10"
+                title="Drag to resize"
+              >
+                <div className="absolute inset-y-0 -left-1 -right-1 group-hover:bg-blue-500/10" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-8 flex flex-col items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="w-0.5 h-4 rounded-full bg-blue-400/60" />
+                </div>
+              </div>
+
+              {/* Raw JSON — default 1/3, resizable */}
+              <div className="flex-shrink-0 flex flex-col overflow-hidden" style={{ width: jsonWidth ?? '33%' }}>
                 <div className="px-5 pt-4 pb-3 flex-shrink-0">
                   <h2 className="text-sm font-semibold text-slate-200">Raw JSON Response</h2>
                   <p className="text-[11px] text-slate-600 mt-0.5">Direct output from the Prisma Model Security API.</p>

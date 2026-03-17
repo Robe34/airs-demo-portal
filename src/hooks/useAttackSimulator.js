@@ -83,6 +83,8 @@ export function useAttackSimulator() {
         blockReason: chatResponse?.block_reason ?? null,
         verdict,
         riskScore: null,
+        tokensIn: data.llm?.tokens_in ?? null,
+        tokensOut: data.llm?.tokens_out ?? null,
         timestamp: new Date().toISOString(),
       }])
       setActiveTelemetry({ ...telemetry, chatResponse })

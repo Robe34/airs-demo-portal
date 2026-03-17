@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { AppProvider, useAppContext } from './context/AppContext'
 import { MainLayout } from './components/layout/MainLayout'
 import { ApiInterceptView } from './views/ApiInterceptView'
@@ -9,6 +9,11 @@ import { HomeView } from './views/HomeView'
 
 function AppContent() {
   const { state } = useAppContext()
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', state.isDark)
+    document.documentElement.classList.toggle('light', !state.isDark)
+  }, [state.isDark])
 
   if (state.activeView === 'home') {
     return <HomeView />

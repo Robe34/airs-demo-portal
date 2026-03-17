@@ -1,45 +1,39 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  ChevronDown, Activity, Code2, Cpu, Hash,
-  Zap, Clock, ArrowDownToLine, ArrowUpFromLine,
+  ChevronDown, Activity, Cpu, Hash,
+  Zap, ArrowDownToLine, ArrowUpFromLine,
   AlertTriangle, CheckCircle2, ShieldX, ShieldCheck,
-  Gauge, Layers, FileCode,
+  Layers, FileCode,
 } from 'lucide-react'
 import { CodeBlock } from '../shared/CodeBlock'
 import { SDK_SNIPPETS } from '../../data/mockData'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function latencyLabel(ms) {
-  if (ms == null) return { label: '—', color: 'text-slate-600' }
-  if (ms < 300)  return { label: 'Fast',   color: 'text-emerald-400' }
-  if (ms < 800)  return { label: 'Normal', color: 'text-blue-400' }
-  if (ms < 2000) return { label: 'Slow',   color: 'text-yellow-400' }
-  return           { label: 'Very slow', color: 'text-red-400' }
-}
-
 function fmt(n, unit = '') {
   if (n == null) return '—'
   return `${n.toLocaleString()}${unit}`
 }
 
 // ─── Collapsible section ──────────────────────────────────────────────────────
-function Section({ title, icon: Icon, children, defaultOpen = true, badge, badgeColor = 'bg-white/10 text-slate-400' }) {
+function Section({ title, icon: Icon, iconColor = 'text-slate-500', children, defaultOpen = true, badge, badgeColor = 'bg-white/10 text-slate-400' }) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="border-b border-white/8 last:border-0">
+    <div className="border-b border-white/[0.06] last:border-0">
       <button
         onClick={() => setOpen(v => !v)}
-        className="w-full flex items-center gap-2 px-4 py-2.5 text-left hover:bg-white/[0.025] transition-colors"
+        className="w-full flex items-center gap-2.5 px-4 py-3 text-left hover:bg-white/[0.03] transition-colors group"
       >
-        <Icon size={12} className="text-slate-500 flex-shrink-0" />
-        <span className="flex-1 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">{title}</span>
+        <div className={`w-5 h-5 rounded-md flex items-center justify-center bg-white/[0.06] flex-shrink-0`}>
+          <Icon size={11} className={iconColor} />
+        </div>
+        <span className="flex-1 text-[11px] font-bold text-slate-300 tracking-wide">{title}</span>
         {badge != null && (
           <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${badgeColor}`}>{badge}</span>
         )}
         <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }}>
-          <ChevronDown size={11} className="text-slate-700" />
+          <ChevronDown size={11} className="text-slate-700 group-hover:text-slate-500 transition-colors" />
         </motion.div>
       </button>
       <AnimatePresence initial={false}>
@@ -62,13 +56,13 @@ function Section({ title, icon: Icon, children, defaultOpen = true, badge, badge
 // ─── Stat card ────────────────────────────────────────────────────────────────
 function StatCard({ label, value, sub, color = 'text-slate-200', icon: Icon, wide = false }) {
   return (
-    <div className={`flex flex-col gap-0.5 p-2.5 rounded-xl bg-white/[0.04] border border-white/8 ${wide ? 'col-span-2' : ''}`}>
-      <div className="flex items-center gap-1.5 mb-0.5">
+    <div className={`flex flex-col gap-1 p-3 rounded-xl bg-black/30 border border-white/[0.08] hover:border-white/[0.14] transition-colors ${wide ? 'col-span-2' : ''}`}>
+      <div className="flex items-center gap-1.5">
         {Icon && <Icon size={10} className="text-slate-600" />}
-        <span className="text-[9px] text-slate-600 uppercase tracking-wider font-semibold">{label}</span>
+        <span className="text-[9px] text-slate-500 uppercase tracking-wider font-semibold">{label}</span>
       </div>
-      <span className={`text-sm font-bold font-mono leading-none ${color}`}>{value ?? '—'}</span>
-      {sub && <span className="text-[9px] text-slate-600 mt-0.5">{sub}</span>}
+      <span className={`text-base font-bold font-mono leading-none ${color}`}>{value ?? '—'}</span>
+      {sub && <span className="text-[9px] text-slate-600">{sub}</span>}
     </div>
   )
 }
@@ -181,30 +175,28 @@ function DetectionGrid({ detected, label }) {
   if (!detected || !Object.keys(detected).length) return null
   const entries = Object.entries(detected)
   const triggered = entries.filter(([, v]) => v)
+  const allClear = triggered.length === 0
 
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="text-[9px] text-slate-600 uppercase tracking-wider font-semibold">{label}</span>
-        {triggered.length > 0
-          ? <span className="text-[9px] font-bold text-red-400">{triggered.length} triggered</span>
-          : <span className="text-[9px] text-emerald-500">all clear</span>
+        <span className="text-[9px] text-slate-500 uppercase tracking-wider font-bold">{label}</span>
+        {allClear
+          ? <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-400"><CheckCircle2 size={9} />All clear</span>
+          : <span className="flex items-center gap-1 text-[9px] font-bold text-red-400"><AlertTriangle size={9} />{triggered.length} triggered</span>
         }
       </div>
-      <div className="grid grid-cols-2 gap-1">
+      <div className="grid grid-cols-2 gap-1.5">
         {entries.map(([key, val]) => (
           <div
             key={key}
-            className={`flex items-center gap-1.5 px-2 py-1.5 rounded-lg border text-[10px] font-medium ${
+            className={`flex items-center gap-1.5 px-2.5 py-2 rounded-lg border text-[10px] font-semibold transition-colors ${
               val
-                ? 'border-red-500/40 bg-red-500/10 text-red-300'
-                : 'border-white/6 bg-white/[0.02] text-slate-700'
+                ? 'border-red-500/50 bg-red-500/15 text-red-300 shadow-sm shadow-red-500/10'
+                : 'border-white/[0.06] bg-white/[0.02] text-slate-700'
             }`}
           >
-            {val
-              ? <AlertTriangle size={8} className="text-red-400 flex-shrink-0" />
-              : <CheckCircle2 size={8} className="text-slate-800 flex-shrink-0" />
-            }
+            <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${val ? 'bg-red-400' : 'bg-slate-800'}`} />
             <span className="truncate">{key.replace(/_/g, ' ')}</span>
           </div>
         ))}
@@ -253,13 +245,16 @@ function ScanBlock({ scan, type }) {
         {[
           { label: 'Category', value: scan.category, accent: scan.category === 'malicious' },
           { label: 'Action',   value: scan.action,   accent: scan.action === 'block' },
-          { label: 'Scan time',value: `${procMs ?? '—'}ms` },
         ].map(({ label, value, accent }) => (
-          <div key={label} className="text-center p-2 rounded-lg bg-white/5 border border-white/8">
+          <div key={label} className={`text-center p-2.5 rounded-xl border ${
+            accent ? 'bg-red-500/10 border-red-500/30' :
+            (value === 'allow' || value === 'benign') ? 'bg-emerald-500/10 border-emerald-500/30' :
+            'bg-white/[0.04] border-white/[0.08]'
+          }`}>
             <div className={`text-xs font-bold font-mono ${accent ? 'text-red-400' : value === 'allow' || value === 'benign' ? 'text-emerald-400' : 'text-slate-300'}`}>
               {value}
             </div>
-            <div className="text-[8px] text-slate-600 mt-0.5">{label}</div>
+            <div className="text-[8px] text-slate-600 mt-0.5 uppercase tracking-wide">{label}</div>
           </div>
         ))}
       </div>
@@ -273,9 +268,6 @@ function ScanBlock({ scan, type }) {
           </div>
         ))}
       </div>
-
-      {/* IDs */}
-      <IdsCard scan={scan} />
 
       {/* Detection flags */}
       {detected && <DetectionGrid detected={detected} label={type === 'input' ? 'Prompt classifier results' : 'Response classifier results'} />}
@@ -306,8 +298,6 @@ export function TelemetrySidebar({ telemetry }) {
   const isDirect  = telemetry && !telemetry.summary
   const llm       = telemetry?.llm
   const timing    = telemetry?.timing
-
-  const latency   = latencyLabel(llm?.latency_ms)
 
   return (
     <div className="flex flex-col h-full overflow-hidden border-l border-white/10 bg-base-900/20">
@@ -343,11 +333,13 @@ export function TelemetrySidebar({ telemetry }) {
 
         {/* Empty */}
         {!telemetry && (
-          <div className="flex flex-col items-center justify-center h-48 gap-3 text-center px-6">
-            <Activity size={28} className="text-slate-800" />
+          <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-8 py-16">
+            <div className="w-16 h-16 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
+              <Activity size={28} className="text-slate-700" />
+            </div>
             <div>
-              <p className="text-xs font-semibold text-slate-600">No telemetry yet</p>
-              <p className="text-[10px] text-slate-700 mt-1">Send a message to capture live data</p>
+              <p className="text-sm font-semibold text-slate-500">Waiting for scan data</p>
+              <p className="text-[11px] text-slate-700 mt-1.5 leading-relaxed">Send a message to capture<br/>live AIRS telemetry</p>
             </div>
           </div>
         )}
@@ -355,64 +347,76 @@ export function TelemetrySidebar({ telemetry }) {
         {/* ── AIRS verdict hero ── */}
         {hasAirs && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className={`mx-4 mt-4 mb-1 p-4 rounded-xl border ${
+            key={isBlocked ? 'blocked' : 'allowed'}
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.25 }}
+            className={`mx-3 mt-3 mb-2 rounded-2xl border overflow-hidden ${
               isBlocked
-                ? 'bg-red-500/10 border-red-500/30'
-                : 'bg-emerald-500/10 border-emerald-500/30'
+                ? 'bg-gradient-to-br from-red-950/60 to-red-900/20 border-red-500/40'
+                : 'bg-gradient-to-br from-emerald-950/60 to-emerald-900/20 border-emerald-500/40'
             }`}
           >
-            <div className="flex items-start gap-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
-                isBlocked ? 'bg-red-500/20' : 'bg-emerald-500/20'
-              }`}>
-                {isBlocked
-                  ? <ShieldX size={20} className="text-red-400" />
-                  : <ShieldCheck size={20} className="text-emerald-400" />}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className={`text-sm font-bold ${isBlocked ? 'text-red-300' : 'text-emerald-300'}`}>
-                  {isBlocked ? 'Threat Blocked' : 'Request Allowed'}
+            {/* Top accent bar */}
+            <div className={`h-1 w-full ${isBlocked ? 'bg-gradient-to-r from-red-600 to-red-400' : 'bg-gradient-to-r from-emerald-600 to-emerald-400'}`} />
+            <div className="p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  isBlocked ? 'bg-red-500/25 border border-red-500/30' : 'bg-emerald-500/25 border border-emerald-500/30'
+                }`}>
+                  {isBlocked
+                    ? <ShieldX size={22} className="text-red-400" />
+                    : <ShieldCheck size={22} className="text-emerald-400" />}
                 </div>
-                <div className="text-[10px] text-slate-500 mt-0.5">
-                  {telemetry.summary.profile} · {telemetry.summary.category}
-                </div>
-                {telemetry.summary.threats_detected?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-2">
-                    {telemetry.summary.threats_detected.map(t => (
-                      <span key={t} className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-500/20 border border-red-500/30 text-[9px] font-bold text-red-400">
-                        <AlertTriangle size={8} />{t.replace(/_/g, ' ')}
-                      </span>
-                    ))}
+                <div className="flex-1 min-w-0">
+                  <div className={`text-base font-bold leading-tight ${isBlocked ? 'text-red-300' : 'text-emerald-300'}`}>
+                    {isBlocked ? 'Threat Blocked' : 'Request Allowed'}
                   </div>
-                )}
+                  <div className="text-[10px] text-slate-500 mt-0.5 truncate">
+                    {telemetry.summary.profile}
+                  </div>
+                </div>
+                <div className={`text-[10px] font-bold px-2.5 py-1 rounded-lg border ${
+                  isBlocked ? 'bg-red-500/15 border-red-500/30 text-red-400' : 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                }`}>
+                  {telemetry.summary.category?.toUpperCase()}
+                </div>
               </div>
+              {telemetry.summary.threats_detected?.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {telemetry.summary.threats_detected.map(t => (
+                    <span key={t} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/20 border border-red-500/30 text-[9px] font-bold text-red-300 uppercase tracking-wide">
+                      <AlertTriangle size={8} />{t.replace(/_/g, ' ')}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </motion.div>
         )}
 
         {/* ── Unprotected hero ── */}
         {isDirect && (
-          <div className="mx-4 mt-4 mb-1 p-4 rounded-xl border border-white/10 bg-white/[0.03]">
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mx-3 mt-3 mb-2 p-4 rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900/60 to-slate-800/20"
+          >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center">
-                <Zap size={18} className="text-slate-500" />
+              <div className="w-11 h-11 rounded-xl bg-white/[0.06] border border-white/10 flex items-center justify-center">
+                <Zap size={20} className="text-slate-400" />
               </div>
               <div>
-                <div className="text-sm font-semibold text-slate-400">Unprotected · Direct LLM</div>
-                <div className="text-[10px] text-slate-600 mt-0.5">Enable protection to scan with Prisma AIRS</div>
+                <div className="text-sm font-bold text-slate-300">Direct LLM Response</div>
+                <div className="text-[10px] text-slate-600 mt-0.5">AIRS scanning disabled — no protection active</div>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
 
         {/* ── LLM Performance ── */}
         {llm && (
-          <Section title="LLM Performance" icon={Cpu} defaultOpen
-            badge={llm.latency_ms != null ? `${llm.latency_ms}ms` : null}
-            badgeColor={`${latency.color} bg-white/5`}
-          >
+          <Section title="LLM Performance" icon={Cpu} iconColor="text-blue-400" defaultOpen>
             <div className="space-y-3">
               {/* Model pill */}
               <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-black/30 border border-white/8">
@@ -423,22 +427,8 @@ export function TelemetrySidebar({ telemetry }) {
                 )}
               </div>
 
-              {/* Stat grid */}
+              {/* Token stats */}
               <div className="grid grid-cols-2 gap-1.5">
-                <StatCard
-                  label="Latency"
-                  value={fmt(llm.latency_ms, 'ms')}
-                  sub={latency.label}
-                  color={latency.color}
-                  icon={Clock}
-                />
-                <StatCard
-                  label="Throughput"
-                  value={llm.throughput_tps != null ? `${llm.throughput_tps} t/s` : '—'}
-                  sub="tokens per second"
-                  color="text-violet-400"
-                  icon={Gauge}
-                />
                 <StatCard
                   label="Input tokens"
                   value={fmt(llm.tokens_in)}
@@ -464,15 +454,6 @@ export function TelemetrySidebar({ telemetry }) {
           </Section>
         )}
 
-        {/* ── Timing waterfall ── */}
-        {timing && (
-          <Section title="Request Timing" icon={Clock} defaultOpen
-            badge={timing.total_ms != null ? `${timing.total_ms}ms total` : null}
-            badgeColor="text-slate-400 bg-white/5"
-          >
-            <TimingWaterfall timing={timing} />
-          </Section>
-        )}
 
         {/* ── AIRS sections (protected only) ── */}
         {hasAirs && (
@@ -480,6 +461,7 @@ export function TelemetrySidebar({ telemetry }) {
             <Section
               title="Input Scan · Prompt"
               icon={ArrowDownToLine}
+              iconColor="text-orange-400"
               defaultOpen
               badge={telemetry.inputScan?.category}
               badgeColor={telemetry.inputScan?.category === 'malicious'
@@ -493,6 +475,7 @@ export function TelemetrySidebar({ telemetry }) {
               <Section
                 title="Output Scan · Response"
                 icon={ArrowUpFromLine}
+                iconColor="text-teal-400"
                 defaultOpen={false}
                 badge={telemetry.outputScan?.category}
                 badgeColor={telemetry.outputScan?.category === 'malicious'
@@ -503,7 +486,7 @@ export function TelemetrySidebar({ telemetry }) {
               </Section>
             )}
 
-            <Section title="Raw JSON Payload" icon={Hash} defaultOpen={false}>
+            <Section title="Raw JSON Payload" icon={Hash} iconColor="text-slate-400" defaultOpen={false}>
               <div className="space-y-2">
                 <p className="text-[9px] text-slate-600 uppercase tracking-wider">Input scan</p>
                 <CodeBlock code={telemetry.inputScan} language="json" maxHeight="200px" />
@@ -520,7 +503,7 @@ export function TelemetrySidebar({ telemetry }) {
 
         {/* ── Dev Corner ── */}
         {telemetry && (
-          <Section title="Dev Corner" icon={FileCode} defaultOpen={false}>
+          <Section title="Dev Corner" icon={FileCode} iconColor="text-yellow-400" defaultOpen={false}>
             <div className="flex gap-1 mb-3 p-1 bg-black/30 rounded-lg border border-white/10">
               {['python', 'node'].map(tab => (
                 <button

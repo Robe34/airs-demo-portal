@@ -65,6 +65,171 @@
   }
 }
 
+/* ─── Light mode overrides ────────────────────────────────────────────────── */
+/* Target: clean white + PA blue (#003087) design, matching guide HTML style  */
+
+html.light,
+html.light body,
+html.light #root {
+  background-color: #eef1f8;
+  color: #1a2035;
+}
+
+/* ── All base-9xx backgrounds → white / near-white ── */
+html.light [class*="bg-base-9"] {
+  background-color: #ffffff !important;
+}
+html.light [class*="bg-base-95"] {
+  background-color: #eef1f8 !important;
+}
+
+/* ── Grid background ── */
+html.light .grid-bg {
+  background-color: #eef1f8 !important;
+  background-image:
+    linear-gradient(rgba(0, 48, 135, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 48, 135, 0.05) 1px, transparent 1px) !important;
+  background-size: 40px 40px;
+}
+
+/* ── Dark inner backgrounds → very subtle ── */
+html.light [class*="bg-black"] {
+  background-color: rgba(0, 48, 135, 0.03) !important;
+}
+
+/* ── White opacity backgrounds → subtle tint ── */
+html.light .bg-white\/5   { background-color: rgba(0, 48, 135, 0.04) !important; }
+html.light .bg-white\/10  { background-color: rgba(0, 48, 135, 0.06) !important; }
+html.light .bg-white\/\[0\.04\] { background-color: rgba(0, 48, 135, 0.04) !important; }
+html.light .bg-white\/\[0\.03\] { background-color: rgba(0, 48, 135, 0.03) !important; }
+html.light .bg-white\/\[0\.06\] { background-color: rgba(0, 48, 135, 0.05) !important; }
+html.light .bg-white\/\[0\.07\] { background-color: rgba(0, 48, 135, 0.05) !important; }
+html.light .bg-white\/\[0\.025\] { background-color: rgba(0, 48, 135, 0.03) !important; }
+
+/* ── Borders ── */
+html.light [class*="border-white\/"] {
+  border-color: rgba(0, 48, 135, 0.12) !important;
+}
+html.light .border-white\/10 { border-color: rgba(0, 48, 135, 0.12) !important; }
+html.light .border-white\/8  { border-color: rgba(0, 48, 135, 0.09) !important; }
+html.light .border-white\/15 { border-color: rgba(0, 48, 135, 0.14) !important; }
+
+/* ── Text — strong contrast ── */
+html.light .text-white         { color: #0f172a !important; }
+html.light .text-slate-100     { color: #0f172a !important; }
+html.light .text-slate-200     { color: #1a2035 !important; }
+html.light .text-slate-300     { color: #1e293b !important; }
+html.light .text-slate-400     { color: #334155 !important; }
+html.light .text-slate-500     { color: #475569 !important; }
+html.light .text-slate-600     { color: #64748b !important; }
+html.light .text-slate-700     { color: #94a3b8 !important; }
+
+/* ── Sidebar ── */
+html.light aside {
+  background-color: #ffffff !important;
+  border-right-color: rgba(0, 48, 135, 0.15) !important;
+  box-shadow: 2px 0 16px rgba(0, 48, 135, 0.08) !important;
+}
+
+/* ── TopBar ── */
+html.light header {
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  border-bottom-color: rgba(0, 48, 135, 0.12) !important;
+  box-shadow: 0 1px 10px rgba(0, 48, 135, 0.08) !important;
+}
+
+/* ── Cards — white with clear definition ── */
+html.light .glass-card {
+  background-color: #ffffff !important;
+  border-color: rgba(0, 48, 135, 0.12) !important;
+  box-shadow: 0 2px 12px rgba(0, 48, 135, 0.06) !important;
+}
+
+/* Give panels/sections a visible card look */
+html.light [class*="bg-base-9"] {
+  box-shadow: 0 1px 8px rgba(0, 48, 135, 0.06) !important;
+}
+
+/* ── Hover states ── */
+html.light .hover\:bg-white\/5:hover     { background-color: rgba(0, 48, 135, 0.05) !important; }
+html.light .hover\:bg-white\/\[0\.07\]:hover { background-color: rgba(0, 48, 135, 0.06) !important; }
+html.light .hover\:bg-white\/5:hover     { background-color: rgba(0, 48, 135, 0.05) !important; }
+
+/* ── Stronger inner borders for readability ── */
+html.light [class*="border-white\/"] {
+  border-color: rgba(0, 48, 135, 0.14) !important;
+}
+
+/* ── Scrollbar ── */
+html.light ::-webkit-scrollbar-thumb {
+  background: rgba(0, 48, 135, 0.18) !important;
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 48, 135, 0.30) !important;
+}
+
+/* ── Monospace / code text — stay readable ── */
+html.light .font-mono { color: inherit; }
+
+/* ── Input / textarea backgrounds ── */
+html.light input,
+html.light textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 48, 135, 0.18) !important;
+}
+
+/* ── Dividers ── */
+html.light .divide-white\/10 > * + * { border-color: rgba(0, 48, 135, 0.10) !important; }
+
+/* ── Verdict hero cards — replace dark gradients with vivid light-mode colors ── */
+
+/* BLOCKED — strong red */
+html.light [class*="from-red-950"] {
+  background: linear-gradient(135deg, #fff0f0 0%, #ffe0e0 100%) !important;
+  border-color: #f87171 !important;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.15) !important;
+}
+html.light [class*="from-red-950"] .text-red-300  { color: #dc2626 !important; }
+html.light [class*="from-red-950"] .text-red-400  { color: #b91c1c !important; }
+html.light [class*="from-red-950"] .text-slate-500 { color: #7f1d1d !important; }
+html.light [class*="from-red-950"] .bg-red-500\/25 { background-color: rgba(239,68,68,0.15) !important; }
+html.light [class*="from-red-950"] .bg-red-500\/15 { background-color: rgba(239,68,68,0.12) !important; }
+html.light [class*="from-red-950"] .border-red-500\/30 { border-color: rgba(239,68,68,0.5) !important; }
+html.light [class*="from-red-950"] .bg-gradient-to-r { background: linear-gradient(90deg, #dc2626, #f87171) !important; }
+
+/* ALLOWED — strong emerald */
+html.light [class*="from-emerald-950"] {
+  background: linear-gradient(135deg, #f0fdf8 0%, #d1fae5 100%) !important;
+  border-color: #34d399 !important;
+  box-shadow: 0 4px 20px rgba(16, 185, 129, 0.12) !important;
+}
+html.light [class*="from-emerald-950"] .text-emerald-300 { color: #065f46 !important; }
+html.light [class*="from-emerald-950"] .text-emerald-400 { color: #047857 !important; }
+html.light [class*="from-emerald-950"] .text-slate-500   { color: #064e3b !important; }
+html.light [class*="from-emerald-950"] .bg-emerald-500\/25 { background-color: rgba(16,185,129,0.15) !important; }
+html.light [class*="from-emerald-950"] .bg-emerald-500\/15 { background-color: rgba(16,185,129,0.12) !important; }
+html.light [class*="from-emerald-950"] .border-emerald-500\/30 { border-color: rgba(16,185,129,0.5) !important; }
+html.light [class*="from-emerald-950"] .bg-gradient-to-r { background: linear-gradient(90deg, #059669, #34d399) !important; }
+
+/* DIRECT (unprotected) — clean blue-slate */
+html.light [class*="from-slate-900"] {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+  border-color: rgba(0, 48, 135, 0.20) !important;
+  box-shadow: 0 4px 16px rgba(0, 48, 135, 0.08) !important;
+}
+html.light [class*="from-slate-900"] .text-slate-300 { color: #1e293b !important; }
+html.light [class*="from-slate-900"] .text-slate-400 { color: #334155 !important; }
+html.light [class*="from-slate-900"] .text-slate-600 { color: #475569 !important; }
+html.light [class*="from-slate-900"] .bg-white\/\[0\.06\] { background-color: rgba(0,48,135,0.08) !important; }
+html.light [class*="from-slate-900"] .border-white\/10 { border-color: rgba(0,48,135,0.15) !important; }
+html.light [class*="from-slate-900"] .text-slate-400 { color: #475569 !important; }
+
+/* DIRECT badge — dark pill stays readable */
+html.light .bg-slate-800 { background-color: #1e293b !important; }
+html.light .text-slate-500 { color: #475569 !important; }
+html.light .border-slate-700 { border-color: #cbd5e1 !important; }
+
 @layer utilities {
   .text-gradient-red {
     background: linear-gradient(135deg, #ef4444, #dc2626);

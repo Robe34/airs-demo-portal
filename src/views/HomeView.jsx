@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Crosshair, ScanSearch, Swords, Shield, ArrowRight, ChevronRight, Terminal } from 'lucide-react'
+import { Crosshair, ScanSearch, Swords, Shield, ArrowRight, ChevronRight, Terminal, Sun, Moon } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
 import airsLogo from '../../prisma-AIRS_RGB_logo_Lockup_Negative.png'
 
@@ -65,7 +65,7 @@ const itemVariants = {
 }
 
 export function HomeView() {
-  const { dispatch } = useAppContext()
+  const { state, dispatch } = useAppContext()
 
   const navigate = (viewId) => dispatch({ type: 'SET_VIEW', payload: viewId })
 
@@ -86,12 +86,21 @@ export function HomeView() {
 
         {/* Center: Prisma AIRS logo */}
         <div className="flex items-center justify-center flex-1">
-          <img src={airsLogo} alt="Prisma AIRS" className="h-7 opacity-90" />
+          <div className={state.isDark ? '' : 'bg-slate-600 px-4 py-1.5 rounded-xl'}>
+            <img src={airsLogo} alt="Prisma AIRS" className="h-7 opacity-90" />
+          </div>
         </div>
 
-        {/* Right: byline */}
-        <div className="flex items-center justify-end flex-1">
+        {/* Right: theme toggle + byline */}
+        <div className="flex items-center justify-end gap-3 flex-1">
           <span className="text-[10px] tracking-widest text-slate-600 uppercase">Palo Alto Networks</span>
+          <button
+            onClick={() => dispatch({ type: 'TOGGLE_THEME' })}
+            className="p-2 rounded-lg border border-white/10 text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all"
+            title={state.isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {state.isDark ? <Sun size={14} /> : <Moon size={14} />}
+          </button>
         </div>
       </header>
 

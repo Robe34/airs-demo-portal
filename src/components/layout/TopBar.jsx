@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, HelpCircle, User, ChevronRight } from 'lucide-react'
+import { Bell, HelpCircle, User, ChevronRight, Sun, Moon } from 'lucide-react'
 import { useAppContext } from '../../context/AppContext'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 import { PulsingDot } from '../shared/PulsingDot'
@@ -13,7 +13,7 @@ const VIEW_LABELS = {
 }
 
 export function TopBar() {
-  const { state } = useAppContext()
+  const { state, dispatch } = useAppContext()
   const theme = useProtectionTheme()
   const view = VIEW_LABELS[state.activeView] || VIEW_LABELS.apiIntercept
 
@@ -65,6 +65,13 @@ export function TopBar() {
         </button>
         <button className="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all">
           <HelpCircle size={14} />
+        </button>
+        <button
+          onClick={() => dispatch({ type: 'TOGGLE_THEME' })}
+          className="p-2 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all"
+          title={state.isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {state.isDark ? <Sun size={14} /> : <Moon size={14} />}
         </button>
         <div className="w-7 h-7 ml-1 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 border border-white/20 flex items-center justify-center">
           <User size={12} className="text-slate-300" />

@@ -6,6 +6,7 @@ const initialState = {
   isProtected: false,
   activeView: 'home',
   scmUrl: null,
+  isDark: true,
 }
 
 function appReducer(state, action) {
@@ -16,6 +17,8 @@ function appReducer(state, action) {
       return { ...state, activeView: action.payload }
     case 'SET_SCM_URL':
       return { ...state, scmUrl: action.payload }
+    case 'TOGGLE_THEME':
+      return { ...state, isDark: !state.isDark }
     default:
       return state
   }

@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { ShieldX, ShieldCheck, Zap, Info, RefreshCw } from 'lucide-react'
+import { ShieldX, ShieldCheck, Zap, Info, RefreshCw, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 
 const messageVariants = {
@@ -135,8 +135,26 @@ export function ChatMessage({ message, onResend, isLoading }) {
             )}
           </div>
 
-          <div className="text-[9px] text-slate-600 mt-1">
-            {new Date(message.timestamp).toLocaleTimeString()}
+          <div className="flex items-center gap-3 mt-1.5">
+            <span className="text-[9px] text-slate-600">
+              {new Date(message.timestamp).toLocaleTimeString()}
+            </span>
+            {(message.tokensIn != null || message.tokensOut != null) && (
+              <div className="flex items-center gap-2">
+                {message.tokensIn != null && (
+                  <span className="flex items-center gap-1 text-[9px] text-blue-400/70">
+                    <ArrowDownToLine size={9} />
+                    {message.tokensIn.toLocaleString()} in
+                  </span>
+                )}
+                {message.tokensOut != null && (
+                  <span className="flex items-center gap-1 text-[9px] text-violet-400/70">
+                    <ArrowUpFromLine size={9} />
+                    {message.tokensOut.toLocaleString()} out
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </motion.div>

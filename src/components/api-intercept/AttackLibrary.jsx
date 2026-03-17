@@ -44,7 +44,7 @@ export function AttackLibrary({ onSelectAttack, backend, model, onBackendChange,
             key={cat.id}
             category={cat}
             onSelectAttack={onSelectAttack}
-            defaultOpen={i === 0}
+            defaultOpen={false}
           />
         ))}
       </div>
