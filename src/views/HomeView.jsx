@@ -145,8 +145,11 @@ export function HomeView() {
               key={pillar.id}
               variants={itemVariants}
               onClick={() => navigate(pillar.id)}
+              whileHover={{ scale: 1.04, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 20 }}
               className={`group flex flex-col rounded-xl border ${c.border} bg-base-900/70 backdrop-blur-md p-6 cursor-pointer
-                hover:bg-base-900/90 transition-all duration-300 hover:scale-[1.01] hover:shadow-lg`}
+                hover:bg-base-900/90 hover:shadow-xl transition-colors duration-200`}
             >
               {/* Icon + tag */}
               <div className="flex items-start justify-between mb-4">

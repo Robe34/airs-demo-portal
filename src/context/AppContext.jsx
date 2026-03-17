@@ -6,7 +6,7 @@ const initialState = {
   isProtected: false,
   activeView: 'home',
   scmUrl: null,
-  isDark: true,
+  isDark: false,
 }
 
 function appReducer(state, action) {
