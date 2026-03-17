@@ -84,10 +84,15 @@ export function HomeView() {
           </div>
         </div>
 
-        {/* Center: Prisma AIRS logo */}
-        <div className="flex items-center justify-center flex-1">
+        {/* Center: Prisma AIRS logo + author */}
+        <div className="flex flex-col items-center justify-center flex-1 gap-2">
           <div className={state.isDark ? '' : 'bg-slate-600 px-4 py-1.5 rounded-xl'}>
             <img src={airsLogo} alt="Prisma AIRS" className="h-7 opacity-90" />
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15">
+            <span className="text-[11px] font-bold text-slate-300">Sergei (SUDO) Udovenko</span>
+            <span className="text-slate-600 text-[10px]">·</span>
+            <span className="text-[10px] text-slate-500">Systems Engineer · Palo Alto Networks</span>
           </div>
         </div>
 
@@ -190,9 +195,6 @@ export function HomeView() {
       </motion.div>
 
       {/* Footer */}
-      <footer className="text-center pb-8 text-[11px] text-slate-600">
-        Created by <span className="text-slate-400 font-medium">Sergei (SUDO) Udovenko</span> · Palo Alto Networks
-      </footer>
     </div>
   )
 }
