@@ -4,6 +4,7 @@ import { Bell, HelpCircle, User, ChevronRight, Sun, Moon } from 'lucide-react'
 import { useAppContext } from '../../context/AppContext'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 import { PulsingDot } from '../shared/PulsingDot'
+import airsLogo from '../../../prisma-AIRS_RGB_logo_Lockup_Negative.png'
 
 const VIEW_LABELS = {
   apiIntercept:  { label: 'API Intercept',                sublabel: 'Real-time payload interception & telemetry', text: 'text-red-400' },
@@ -18,7 +19,7 @@ export function TopBar() {
   const view = VIEW_LABELS[state.activeView] || VIEW_LABELS.apiIntercept
 
   return (
-    <header className="flex items-center h-14 px-6 border-b border-white/10 bg-base-900/60 backdrop-blur-md flex-shrink-0">
+    <header className="flex items-center h-16 px-6 border-b border-white/10 bg-base-900/60 backdrop-blur-md flex-shrink-0">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 flex-1">
         <span className="text-xs text-slate-500">SUDO AIRS Demo</span>
@@ -39,6 +40,18 @@ export function TopBar() {
             <span className="hidden md:block text-xs text-slate-500">{view.sublabel}</span>
           </motion.div>
         </AnimatePresence>
+      </div>
+
+      {/* Center: logo + author */}
+      <div className="flex flex-col items-center gap-1 mx-6">
+        <div className={state.isDark ? '' : 'bg-slate-600 px-3 py-1 rounded-lg'}>
+          <img src={airsLogo} alt="Prisma AIRS" className="h-5 opacity-90" />
+        </div>
+        <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/15 whitespace-nowrap">
+          <span className="text-[10px] font-bold text-slate-300">Sergei (SUDO) Udovenko</span>
+          <span className="text-slate-600 text-[9px]">·</span>
+          <span className="text-[9px] text-slate-500">Systems Engineer · Palo Alto Networks</span>
+        </div>
       </div>
 
       {/* Status pill */}
