@@ -2,11 +2,11 @@ import { useState, useCallback } from 'react'
 import { useAppContext } from '../context/AppContext'
 
 const SCM_BASE = 'https://stratacloudmanager.paloaltonetworks.com/ai-security/runtime/ai-sessions'
+const SCM_TSG_ID = '1986626000'
 
 function buildScmUrl(inputScan) {
-  if (!inputScan?.tr_id || !inputScan?.profile_id || !inputScan?.scan_id) return null
-  const profileName = encodeURIComponent(inputScan.profile_name || 'AIRS')
-  return `${SCM_BASE}/${inputScan.tr_id}/${inputScan.profile_id}/${profileName}/transactions/${inputScan.scan_id}/0`
+  if (!inputScan?.scan_id) return null
+  return `${SCM_BASE}?tsg_id=${SCM_TSG_ID}`
 }
 
 function makeErrorMessage(blockReason) {
