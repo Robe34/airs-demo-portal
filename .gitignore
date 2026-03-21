@@ -10,3 +10,5 @@ __pycache__/
 *.pyc
 .claude/hooks/security.log
 docs/claude code hooks.png
+excalidraw.log
+*.excalidraw
