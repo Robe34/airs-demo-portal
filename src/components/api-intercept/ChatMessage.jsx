@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { ShieldX, ShieldCheck, Zap, Info, RefreshCw, ArrowDownToLine, ArrowUpFromLine } from 'lucide-react'
+import { ShieldX, ShieldCheck, Zap, Info, RefreshCw, ArrowDownToLine, ArrowUpFromLine, Languages } from 'lucide-react'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 
 const messageVariants = {
@@ -9,7 +9,7 @@ const messageVariants = {
   transition: { type: 'spring', stiffness: 400, damping: 30 },
 }
 
-export function ChatMessage({ message, onResend, isLoading }) {
+export function ChatMessage({ message, onResend, onResendHebrew, isLoading, isTranslating }) {
   const theme = useProtectionTheme()
 
   if (message.role === 'system') {
@@ -64,8 +64,19 @@ export function ChatMessage({ message, onResend, isLoading }) {
                 className="flex items-center gap-1 text-[9px] text-slate-600 hover:text-slate-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 title="Resend this message"
               >
-                <RefreshCw size={9} className={isLoading ? 'animate-spin' : ''} />
+                <RefreshCw size={9} className={isLoading && !isTranslating ? 'animate-spin' : ''} />
                 Resend
+              </button>
+            )}
+            {onResendHebrew && (
+              <button
+                onClick={onResendHebrew}
+                disabled={isLoading}
+                className="flex items-center gap-1 text-[9px] text-blue-400/70 hover:text-blue-300 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                title="Translate to Hebrew and send"
+              >
+                <Languages size={9} className={isTranslating ? 'animate-spin' : ''} />
+                He
               </button>
             )}
           </div>

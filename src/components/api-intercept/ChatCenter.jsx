@@ -13,6 +13,30 @@ export function ChatCenter({ messages, isLoading, onSendMessage, onClear, backen
   const endRef = useRef(null)
   const inputRef = useRef(null)
   const [input, setInput] = useState('')
+  const [translating, setTranslating] = useState(null)
+
+  const handleSendHebrew = async (text) => {
+    setTranslating(text)
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: `Translate the following text to Hebrew. Return ONLY the translated text, nothing else:\n\n${text}`,
+          airsEnabled: false,
+          backend,
+          modelId: model,
+        }),
+      })
+      const data = await res.json()
+      const translated = data.chatResponse?.content?.trim() || text
+      onSendMessage(translated, backend, model)
+    } catch {
+      onSendMessage(text, backend, model)
+    } finally {
+      setTranslating(null)
+    }
+  }
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -56,7 +80,9 @@ export function ChatCenter({ messages, isLoading, onSendMessage, onClear, backen
                 <ChatMessage
                   message={msg}
                   onResend={msg.role === 'user' ? () => onSendMessage(msg.content, backend, model) : undefined}
-                  isLoading={isLoading}
+                  onResendHebrew={msg.role === 'user' ? () => handleSendHebrew(msg.content) : undefined}
+                  isLoading={isLoading || translating === msg.content}
+                  isTranslating={translating === msg.content}
                 />
               </div>
             ))}
@@ -73,17 +99,17 @@ export function ChatCenter({ messages, isLoading, onSendMessage, onClear, backen
             <div className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${
               theme.isProtected
                 ? 'bg-emerald-500/10 border-emerald-500/25'
-                : 'bg-slate-800 border-white/10'
+                : 'bg-blue-500/15 border-blue-400/30'
             }`}>
-              <Loader2 size={12} className={`animate-spin ${theme.isProtected ? theme.primaryText : 'text-slate-500'}`} />
-              <span className="text-xs text-slate-400">
+              <Loader2 size={12} className={`animate-spin ${theme.isProtected ? theme.primaryText : 'text-blue-500'}`} />
+              <span className={`text-xs font-medium ${theme.isProtected ? 'text-slate-200' : 'text-blue-700'}`}>
                 {theme.isProtected ? 'AIRS scanning…' : 'Sending to LLM…'}
               </span>
               <span className="flex gap-0.5">
                 {[0, 1, 2].map(i => (
                   <motion.span
                     key={i}
-                    className={`w-1 h-1 rounded-full ${theme.isProtected ? theme.pulseColor : 'bg-slate-600'}`}
+                    className={`w-1 h-1 rounded-full ${theme.isProtected ? theme.pulseColor : 'bg-blue-400'}`}
                     animate={{ opacity: [0.3, 1, 0.3] }}
                     transition={{ duration: 1, delay: i * 0.2, repeat: Infinity }}
                   />
