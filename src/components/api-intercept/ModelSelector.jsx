@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cloud, Server, Sparkles, ChevronDown, Loader2, CheckCircle2, AlertCircle, RefreshCw, Zap } from 'lucide-react'
+import { ChevronDown, Loader2, CheckCircle2, AlertCircle, RefreshCw, Zap } from 'lucide-react'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 
 const TABS = [
-  { id: 'vertex',  label: 'Vertex AI',   icon: Cloud,     color: 'blue' },
-  { id: 'bedrock', label: 'Bedrock',     icon: Server,    color: 'orange' },
-  { id: 'azure',   label: 'Azure OpenAI', icon: Sparkles, color: 'purple' },
+  { id: 'vertex',  label: 'Vertex AI',    logo: '/logo-gcp.png' },
+  { id: 'bedrock', label: 'Bedrock',      logo: '/logo-aws.png' },
+  { id: 'azure',   label: 'Azure OpenAI', logo: '/logo-azure.png' },
 ]
 
 const STATUS_STYLE = {
@@ -97,7 +97,11 @@ export function ModelSelector({ backend, model, onBackendChange, onModelChange }
                   transition={{ type: 'spring', stiffness: 400, damping: 30 }}
                 />
               )}
-              <tab.icon size={11} className={`relative z-10 ${backend === tab.id ? theme.primaryText : ''} transition-colors duration-200`} />
+              <img
+                src={tab.logo}
+                alt={tab.label}
+                className={`relative z-10 h-4 w-auto object-contain transition-opacity duration-200 ${backend === tab.id ? 'opacity-100' : 'opacity-40'}`}
+              />
               <span className={`relative z-10 ${backend === tab.id ? theme.primaryText : ''} transition-colors duration-200`}>
                 {tab.label}
               </span>

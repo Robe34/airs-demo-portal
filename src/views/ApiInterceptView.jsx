@@ -15,9 +15,9 @@ const MIN_SIDEBAR  = 220
 const MAX_SIDEBAR  = 600
 const DEFAULT_RIGHT = 320
 
-const MIN_LIBRARY  = 180
-const MAX_LIBRARY  = 480
-const DEFAULT_LEFT  = 260
+const MIN_LIBRARY  = 216
+const MAX_LIBRARY  = 576
+const DEFAULT_LEFT  = 312
 
 export function ApiInterceptView() {
   const [backend, setBackend] = useState('vertex')
