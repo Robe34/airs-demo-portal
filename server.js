@@ -11,6 +11,7 @@ import {
   BedrockClient,
   ListFoundationModelsCommand,
 } from '@aws-sdk/client-bedrock'
+import { AzureOpenAI } from 'openai'
 
 const app = express()
 app.use(cors())
@@ -69,6 +70,39 @@ async function airscan(prompt, response = null, model = 'unknown') {
 
   const data = await res.json()
   return { data, latencyMs: Date.now() - t0, requestBody: body }
+}
+
+// ─── Azure OpenAI helper ──────────────────────────────────────────────────────
+function makeAzureClient() {
+  return new AzureOpenAI({
+    endpoint: process.env.AZURE_OPENAI_ENDPOINT,
+    apiKey: process.env.AZURE_OPENAI_API_KEY,
+    apiVersion: process.env.AZURE_OPENAI_API_VERSION || '2025-04-01-preview',
+  })
+}
+
+async function callAzureOpenAI(prompt, deploymentName) {
+  const client = makeAzureClient()
+  const t0 = Date.now()
+  const response = await client.chat.completions.create({
+    model: deploymentName,
+    messages: [{ role: 'user', content: prompt }],
+    max_completion_tokens: 1024,
+  })
+  const latencyMs = Date.now() - t0
+  const choice = response.choices?.[0]
+  const text = choice?.message?.content ?? ''
+  const usage = response.usage ?? {}
+  return {
+    text,
+    latencyMs,
+    tokens: {
+      input:  usage.prompt_tokens     ?? null,
+      output: usage.completion_tokens ?? null,
+      total:  usage.total_tokens      ?? null,
+    },
+    finishReason: choice?.finish_reason ?? null,
+  }
 }
 
 // ─── Vertex AI helper ─────────────────────────────────────────────────────────
@@ -247,7 +281,9 @@ app.post('/api/chat', async (req, res) => {
   if (!message) return res.status(400).json({ error: 'message is required' })
 
   const resolvedModelId = modelId || (
-    backend === 'vertex' ? process.env.VERTEX_MODEL : process.env.BEDROCK_MODEL_ID
+    backend === 'vertex'  ? process.env.VERTEX_MODEL :
+    backend === 'azure'   ? process.env.AZURE_OPENAI_DEPLOYMENT :
+    process.env.BEDROCK_MODEL_ID
   )
   const modelLabel = `${backend}/${resolvedModelId}`
 
@@ -257,9 +293,9 @@ app.post('/api/chat', async (req, res) => {
   if (!airsEnabled) {
     console.log(`[LLM] Unprotected — calling ${modelLabel} directly…`)
     try {
-      const r = backend === 'vertex'
-        ? await callVertexAI(message, resolvedModelId)
-        : await callBedrock(message, resolvedModelId)
+      const r = backend === 'vertex'  ? await callVertexAI(message, resolvedModelId)
+              : backend === 'azure'   ? await callAzureOpenAI(message, resolvedModelId)
+              : await callBedrock(message, resolvedModelId)
       console.log(`[LLM] Response received (${r.latencyMs}ms, ${r.tokens?.total ?? '?'} tokens) — no AIRS scan`)
       return res.json({
         summary: null,
@@ -299,14 +335,10 @@ app.post('/api/chat', async (req, res) => {
     let llmText = '', llmLatencyMs = 0, llmTokens = null, llmFinishReason = null
     try {
       console.log(`[LLM] Calling ${modelLabel}…`)
-      if (backend === 'vertex') {
-        const r = await callVertexAI(message, resolvedModelId)
-        llmText = r.text; llmLatencyMs = r.latencyMs; llmTokens = r.tokens; llmFinishReason = r.finishReason
-      } else {
-        const r = await callBedrock(message, resolvedModelId)
-        llmText = r.text; llmLatencyMs = r.latencyMs; llmTokens = r.tokens; llmFinishReason = r.finishReason
-        llmText = r.text; llmLatencyMs = r.latencyMs
-      }
+      const r = backend === 'vertex'  ? await callVertexAI(message, resolvedModelId)
+              : backend === 'azure'   ? await callAzureOpenAI(message, resolvedModelId)
+              : await callBedrock(message, resolvedModelId)
+      llmText = r.text; llmLatencyMs = r.latencyMs; llmTokens = r.tokens; llmFinishReason = r.finishReason
       console.log(`[LLM] Response received (${llmLatencyMs}ms)`)
     } catch (err) {
       console.error('[LLM] Error:', err.message)
@@ -362,6 +394,18 @@ app.get('/api/models/bedrock', async (_req, res) => {
     console.error('[bedrock] ListFoundationModels error:', err.message)
     res.status(502).json({ error: err.message })
   }
+})
+
+// ─── GET /api/models/azure ────────────────────────────────────────────────────
+// Returns the actual deployments configured in the Azure AI Foundry resource
+const AZURE_DEPLOYMENTS = [
+  { id: 'gpt-5.4-nano',               label: 'GPT-5.4 Nano',              provider: 'OpenAI',    status: 'available' },
+  { id: 'DeepSeek-V3.2',              label: 'DeepSeek V3.2',             provider: 'DeepSeek',  status: 'available' },
+  { id: 'grok-4-1-fast-non-reasoning', label: 'Grok 4.1 Fast',            provider: 'xAI',       status: 'available' },
+]
+
+app.get('/api/models/azure', (_req, res) => {
+  res.json({ provider: 'Azure OpenAI', endpoint: process.env.AZURE_OPENAI_ENDPOINT, models: AZURE_DEPLOYMENTS })
 })
 
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cloud, Server, ChevronDown, Loader2, CheckCircle2, AlertCircle, RefreshCw, Zap } from 'lucide-react'
+import { Cloud, Server, Sparkles, ChevronDown, Loader2, CheckCircle2, AlertCircle, RefreshCw, Zap } from 'lucide-react'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 
 const TABS = [
-  { id: 'vertex',  label: 'Vertex AI', icon: Cloud,   color: 'blue' },
-  { id: 'bedrock', label: 'Bedrock',   icon: Server,  color: 'orange' },
+  { id: 'vertex',  label: 'Vertex AI',   icon: Cloud,     color: 'blue' },
+  { id: 'bedrock', label: 'Bedrock',     icon: Server,    color: 'orange' },
+  { id: 'azure',   label: 'Azure OpenAI', icon: Sparkles, color: 'purple' },
 ]
 
 const STATUS_STYLE = {
@@ -20,8 +21,9 @@ export function ModelSelector({ backend, model, onBackendChange, onModelChange }
   const [open, setOpen] = useState(false)
   const [vertexModels, setVertexModels] = useState([])
   const [bedrockModels, setBedrockModels] = useState([])
-  const [loading, setLoading] = useState({ vertex: false, bedrock: false })
-  const [errors, setErrors] = useState({ vertex: null, bedrock: null })
+  const [azureModels, setAzureModels] = useState([])
+  const [loading, setLoading] = useState({ vertex: false, bedrock: false, azure: false })
+  const [errors, setErrors] = useState({ vertex: null, bedrock: null, azure: null })
   const [filter, setFilter] = useState('')
   const panelRef = useRef(null)
 
@@ -43,7 +45,8 @@ export function ModelSelector({ backend, model, onBackendChange, onModelChange }
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Failed to load models')
       if (provider === 'vertex') setVertexModels(data.models ?? [])
-      else setBedrockModels(data.models ?? [])
+      else if (provider === 'bedrock') setBedrockModels(data.models ?? [])
+      else setAzureModels(data.models ?? [])
     } catch (err) {
       setErrors(prev => ({ ...prev, [provider]: err.message }))
     } finally {
@@ -51,13 +54,14 @@ export function ModelSelector({ backend, model, onBackendChange, onModelChange }
     }
   }
 
-  // Fetch both on mount
+  // Fetch all on mount
   useEffect(() => {
     fetchModels('vertex')
     fetchModels('bedrock')
+    fetchModels('azure')
   }, [])
 
-  const currentModels = backend === 'vertex' ? vertexModels : bedrockModels
+  const currentModels = backend === 'vertex' ? vertexModels : backend === 'azure' ? azureModels : bedrockModels
   const isLoading = loading[backend]
   const error = errors[backend]
 
@@ -221,7 +225,7 @@ export function ModelSelector({ backend, model, onBackendChange, onModelChange }
             {/* Footer */}
             <div className="px-3 py-1.5 border-t border-white/10">
               <span className="text-[9px] text-slate-600">
-                {filtered.length} model{filtered.length !== 1 ? 's' : ''} · {backend === 'vertex' ? 'Google Cloud Vertex AI' : 'AWS Bedrock'}
+                {filtered.length} model{filtered.length !== 1 ? 's' : ''} · {backend === 'vertex' ? 'Google Cloud Vertex AI' : backend === 'azure' ? 'Azure OpenAI' : 'AWS Bedrock'}
               </span>
             </div>
           </motion.div>

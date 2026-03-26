@@ -6,8 +6,9 @@ import { useAttackSimulator } from '../hooks/useAttackSimulator'
 import { useProtectionTheme } from '../hooks/useProtectionTheme'
 
 const DEFAULT_MODELS = {
-  vertex: 'gemini-2.0-flash-001',
+  vertex:  'gemini-2.0-flash-001',
   bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
+  azure:   'gpt-5.4-nano',
 }
 
 const MIN_SIDEBAR  = 220
