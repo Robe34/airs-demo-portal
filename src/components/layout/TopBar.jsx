@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, HelpCircle, User, ChevronRight, Sun, Moon } from 'lucide-react'
+import { Bell, HelpCircle, ChevronRight, Sun, Moon } from 'lucide-react'
 import { useAppContext } from '../../context/AppContext'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 import { PulsingDot } from '../shared/PulsingDot'
@@ -86,9 +86,6 @@ export function TopBar() {
         >
           {state.isDark ? <Sun size={14} /> : <Moon size={14} />}
         </button>
-        <div className="w-7 h-7 ml-1 rounded-full bg-gradient-to-br from-slate-600 to-slate-700 border border-white/20 flex items-center justify-center">
-          <User size={12} className="text-slate-300" />
-        </div>
       </div>
     </header>
   )

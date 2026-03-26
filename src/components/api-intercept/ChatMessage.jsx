@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { ShieldX, ShieldCheck, Zap, Info, RefreshCw, ArrowDownToLine, ArrowUpFromLine, Languages, Copy, Check } from 'lucide-react'
+import { ShieldX, ShieldCheck, Info, RefreshCw, ArrowDownToLine, ArrowUpFromLine, Languages, Copy, Check } from 'lucide-react'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -163,18 +163,16 @@ function UserMessage({ message, onResend, onResendHebrew, isLoading, isTranslati
 function AssistantMessage({ message }) {
   const isBlocked = message.blocked
   const isError = message.verdict === 'ERROR'
-  const isDirect = message.verdict === 'DIRECT'
-  const hebrew = isHebrewText(message.content || '')
+const hebrew = isHebrewText(message.content || '')
 
-  // Verdict config
+  // Verdict config — only show pill for BLOCKED and ERROR
   const verdict = isError
     ? { icon: <ShieldX size={11} className="text-orange-400" />, label: 'LLM ERROR', labelColor: 'text-orange-400', dot: 'bg-orange-400', border: 'border-orange-500/20' }
     : isBlocked
     ? { icon: <ShieldX size={11} className="text-red-400" />, label: 'BLOCKED BY AIRS', labelColor: 'text-red-400', dot: 'bg-red-500', border: 'border-red-500/20' }
-    : isDirect
-    ? { icon: <Zap size={11} className="text-slate-400" />, label: 'DIRECT — NO SCAN', labelColor: 'text-slate-400', dot: 'bg-slate-500', border: 'border-slate-600/40' }
     : { icon: <ShieldCheck size={11} className="text-emerald-400" />, label: 'AIRS ALLOWED', labelColor: 'text-emerald-400', dot: 'bg-emerald-400', border: 'border-emerald-500/20' }
 
+  const showPill = isBlocked || isError
 
   return (
     <motion.div
@@ -183,7 +181,8 @@ function AssistantMessage({ message }) {
       transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className="flex flex-col items-start px-4"
     >
-      {/* Verdict pill */}
+      {/* Verdict pill — only for BLOCKED / ERROR */}
+      {showPill && (
       <div className={`flex items-center gap-1.5 mb-1.5 px-2 py-0.5 rounded-full border ${verdict.border} bg-white/3`}>
         <motion.div
           className={`w-1.5 h-1.5 rounded-full ${verdict.dot}`}
@@ -196,6 +195,7 @@ function AssistantMessage({ message }) {
           <span className={`text-[8px] ${verdict.labelColor} opacity-60`}>· Risk {message.riskScore}/100</span>
         )}
       </div>
+      )}
 
       {/* Bubble */}
       <div

@@ -142,23 +142,6 @@ export function Sidebar() {
           {expanded && <span className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${theme.pulseColor} animate-pulse transition-colors duration-500`} />}
         </div>
 
-        {/* Version */}
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.15 }}
-              className="flex items-center justify-between px-1"
-            >
-              <span className="text-[10px] text-slate-600 whitespace-nowrap">SUDO AIRS Demo</span>
-              <button className="text-slate-600 hover:text-slate-400 transition-colors">
-                <Settings size={12} />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </motion.aside>
   )

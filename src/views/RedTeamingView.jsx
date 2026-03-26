@@ -410,7 +410,7 @@ export function RedTeamingView() {
                 </div>
               : <div className="space-y-1.5">
                   {targets.map(t => (
-                    <button key={t.uuid} onClick={() => setTarget(t)}
+                    <button key={t.uuid} onClick={() => setSelectedTarget(t)}
                       className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition-all ${
                         selectedTarget?.uuid === t.uuid
                           ? `${theme.primaryBorder2} ${theme.primaryBg2}`
