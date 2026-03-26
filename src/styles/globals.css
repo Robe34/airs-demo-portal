@@ -21,6 +21,7 @@
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    --user-bubble-text: rgba(220, 230, 255, 0.92);
   }
 
   /* Custom scrollbar */
@@ -73,6 +74,7 @@ html.light body,
 html.light #root {
   background-color: #eef1f8;
   color: #1a2035;
+  --user-bubble-text: rgba(15, 30, 80, 0.9);
 }
 
 /* ── All base-8xx and base-9xx backgrounds → white / near-white ── */
