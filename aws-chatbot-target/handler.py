@@ -59,12 +59,15 @@ def handler(event, context):
             body=json.dumps(payload),
         )
         result = json.loads(resp["body"].read())
-        reply = result["content"][0]["text"]
+        content = result.get("content", [])
+        if not content:
+            return _response(502, {"error": "empty response from model"})
+        reply = content[0].get("text", "")
     except Exception as e:
         return _response(502, {"error": str(e)})
 
     return _response(200, {
         "response": reply,
         "model": "claude-3-haiku",
-        "session_id": str(uuid.uuid4()),
+        "request_id": str(uuid.uuid4()),
     })
