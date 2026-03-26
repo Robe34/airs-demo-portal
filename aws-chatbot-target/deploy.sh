@@ -3,7 +3,7 @@ set -euo pipefail
 
 # Must be run from inside aws-chatbot-target/ directory
 STACK_NAME="sudo-airs-chatbot"
-REGION="us-east-1"
+REGION="us-west-2"
 
 # Auto-generate API key if not pre-set in environment
 # Only hex chars used — safe in parameter overrides

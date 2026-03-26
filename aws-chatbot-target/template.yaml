@@ -25,7 +25,7 @@ Resources:
       Environment:
         Variables:
           CHATBOT_API_KEY: !Ref ChatbotApiKey
-          BEDROCK_REGION: us-east-1
+          BEDROCK_REGION: us-west-2
           SYSTEM_PROMPT: >
             You are the ACME Corp IT Helpdesk Assistant. You help employees with IT issues
             including password resets, VPN setup, software installation, and access requests.
@@ -37,7 +37,7 @@ Resources:
         - Statement:
             Effect: Allow
             Action: bedrock:InvokeModel
-            Resource: arn:aws:bedrock:us-east-1::foundation-model/anthropic.claude-3-haiku-20240307-v1:0
+            Resource: arn:aws:bedrock:us-west-2::foundation-model/anthropic.claude-3-haiku-20240307-v1:0
       Events:
         ChatApi:
           Type: HttpApi
