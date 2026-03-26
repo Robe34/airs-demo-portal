@@ -39,7 +39,7 @@ echo "  Name:          SUDO-AWS-IT-Helpdesk-Bot"
 echo "  Endpoint:      $ENDPOINT"
 echo "  Method:        POST"
 echo '  Request:       {"message": "{INPUT}"}'
-echo "  Response path: \$.response"
+echo "  Response path: \$.output"
 echo "  Header:        X-API-Key: $CHATBOT_API_KEY"
 echo "──────────────────────────────────────────────"
 echo ""
