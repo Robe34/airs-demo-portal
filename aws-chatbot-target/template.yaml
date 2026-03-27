@@ -13,7 +13,7 @@ Globals:
   Function:
     Runtime: python3.12
     Timeout: 30
-    MemorySize: 256
+    MemorySize: 1024
 
 Resources:
   ChatbotFunction:
