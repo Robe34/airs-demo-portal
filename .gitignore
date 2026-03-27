@@ -12,3 +12,7 @@ __pycache__/
 docs/claude code hooks.png
 excalidraw.log
 *.excalidraw
+
+# AWS Chatbot Red Team Target
+aws-chatbot-target/
+
