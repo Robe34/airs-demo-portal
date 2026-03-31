@@ -235,16 +235,16 @@ function MetricsStrip({ trace }) {
         {/* Summary bar */}
         <div className="mx-3 mb-3 px-3 py-2.5 rounded-xl" style={{ background: 'rgba(0,0,0,0.04)', border: '1px solid rgba(0,0,0,0.08)' }}>
           <div className="flex items-center gap-2 flex-wrap text-[11px] mb-1.5">
-            <span style={{ color: '#475569' }}>Typical US → US:</span>
+            <span style={{ color: '#0f172a' }}>Typical US → US:</span>
             <span className="font-black font-mono" style={{ color: '#2563eb', fontSize: 14 }}>~200ms</span>
-            <span style={{ color: '#64748b', fontSize: 10 }}>network</span>
-            <span style={{ color: '#94a3b8', fontWeight: 700 }}>+</span>
+            <span style={{ color: '#0f172a', fontSize: 10 }}>network</span>
+            <span style={{ color: '#0f172a', fontWeight: 700 }}>+</span>
             <span className="font-black font-mono" style={{ color: '#7c3aed', fontSize: 14 }}>~550ms</span>
-            <span style={{ color: '#64748b', fontSize: 10 }}>AIRS processing</span>
-            <span style={{ color: '#94a3b8', fontWeight: 700 }}>=</span>
+            <span style={{ color: '#0f172a', fontSize: 10 }}>AIRS processing</span>
+            <span style={{ color: '#0f172a', fontWeight: 700 }}>=</span>
             <span className="font-black font-mono" style={{ color: '#059669', fontSize: 15 }}>500–900ms</span>
           </div>
-          <div className="flex gap-2 flex-wrap text-[10px]" style={{ color: '#475569' }}>
+          <div className="flex gap-2 flex-wrap text-[10px]" style={{ color: '#0f172a' }}>
             <span className="px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>Co-located</span>
             <span>Same cloud region → network &lt;10ms</span>
             <span style={{ color: '#334155' }}>·</span>
