@@ -149,7 +149,7 @@ function VerdictBanner({ trace }) {
       {trace.threats_detected?.length > 0 && (
         <div className="flex flex-wrap gap-1.5 mt-3 pt-3 border-t border-white/[0.06]">
           {trace.threats_detected.map(t => (
-            <span key={t} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/20 border border-red-500/30 text-[9px] font-bold text-red-300 uppercase tracking-wide">
+            <span key={t} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-600 border border-red-700 text-[9px] font-bold text-white uppercase tracking-wide">
               <AlertTriangle size={7} />{t.replace(/_/g, ' ')}
             </span>
           ))}
@@ -280,7 +280,7 @@ function FlowNode({ span, totalMs, isLast }) {
                 <span className="text-[10px] text-slate-400">{cfg.badge}</span>
               )}
               {isBlocked && (
-                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-red-500/20 border border-red-500/30 text-red-400 text-[8px] font-bold">
+                <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-red-600 border border-red-700 text-white text-[8px] font-bold">
                   <AlertTriangle size={7} />BLOCKED
                 </span>
               )}
