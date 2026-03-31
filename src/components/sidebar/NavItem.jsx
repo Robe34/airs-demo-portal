@@ -14,7 +14,7 @@ export function NavItem({ icon: Icon, label, sublabel, isActive, onClick, color,
         ${collapsed ? 'justify-center px-0 py-2.5' : 'px-3 py-2.5'}
         ${isActive
           ? `${c ? c.bg : theme.navActiveBg} border ${c ? c.border : theme.navActiveBorder}`
-          : 'border border-transparent hover:bg-white/5 hover:border-white/10'
+          : `border border-transparent ${color ? `hover:${color.bg} hover:${color.border}` : 'hover:bg-white/5 hover:border-white/10'}`
         }
       `}
       whileTap={{ scale: 0.98 }}
@@ -32,14 +32,14 @@ export function NavItem({ icon: Icon, label, sublabel, isActive, onClick, color,
         size={16}
         strokeWidth={isActive ? 2.5 : 2}
         className={`flex-shrink-0 transition-colors duration-200 ${
-          isActive ? (c ? c.text : theme.primaryText) : 'text-slate-500 group-hover:text-slate-400'
+          isActive ? (c ? c.text : theme.primaryText) : `text-slate-500 ${color ? `group-hover:${color.text}` : 'group-hover:text-slate-400'}`
         }`}
       />
 
       {!collapsed && (
         <div className="flex-1 min-w-0">
           <div className={`text-sm font-medium transition-colors duration-200 ${
-            isActive ? (c ? c.text : theme.primaryText) : 'text-slate-400 group-hover:text-slate-300'
+            isActive ? (c ? c.text : theme.primaryText) : `text-slate-400 ${color ? `group-hover:${color.text}` : 'group-hover:text-slate-300'}`
           }`}>
             {label}
           </div>
