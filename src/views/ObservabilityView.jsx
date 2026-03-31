@@ -20,24 +20,9 @@ const TABS = [
   { id: 'traces',   label: 'Prompt History Log',   icon: Activity },
 ]
 
-function AirsProbeCard() {
-  const [state, setState] = useState('idle') // idle | running | done | error
-  const [result, setResult] = useState(null)
-
-  const run = async () => {
-    setState('running')
-    setResult(null)
-    try {
-      const r = await fetch('/api/airs-probe')
-      const data = await r.json()
-      if (!r.ok) throw new Error(data.error)
-      setResult(data)
-      setState('done')
-    } catch (err) {
-      setResult({ error: err.message })
-      setState('error')
-    }
-  }
+function AirsProbeCard({ probeState, probeResult, onRun }) {
+  const state = probeState
+  const result = probeResult
 
   const latencyColor = result?.avg_ms
     ? result.avg_ms < 400 ? 'text-emerald-500' : result.avg_ms < 800 ? 'text-orange-400' : 'text-red-400'
@@ -51,7 +36,7 @@ function AirsProbeCard() {
           <span className="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Live AIRS Latency Probe</span>
         </div>
         <button
-          onClick={run}
+          onClick={onRun}
           disabled={state === 'running'}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
@@ -145,8 +130,26 @@ function EmptyState({ dispatch }) {
 export function ObservabilityView() {
   const [activeTab, setActiveTab]       = useState('overview')
   const [selectedTraceId, setSelectedTraceId] = useState(null)
+  const [probeState, setProbeState]     = useState('idle')
+  const [probeResult, setProbeResult]   = useState(null)
   const { metrics, traces, loading, filters, setFilters, since, setSince, refresh } = useObservability()
   const { dispatch, state } = useAppContext()
+
+  const runProbe = async () => {
+    setProbeState('running')
+    setProbeResult(null)
+    setActiveTab('overview')
+    try {
+      const r = await fetch('/api/airs-probe')
+      const data = await r.json()
+      if (!r.ok) throw new Error(data.error)
+      setProbeResult(data)
+      setProbeState('done')
+    } catch (err) {
+      setProbeResult({ error: err.message })
+      setProbeState('error')
+    }
+  }
 
   // If a trace was pre-selected from the TelemetrySidebar, open it
   React.useEffect(() => {
@@ -183,6 +186,17 @@ export function ObservabilityView() {
             </button>
           ))}
         </div>
+
+        {/* AIRS probe button */}
+        <button
+          onClick={runProbe}
+          disabled={probeState === 'running'}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {probeState === 'running'
+            ? <><Loader2 size={11} className="animate-spin" /> Probing…</>
+            : <><Wifi size={11} /> Probe AIRS Latency</>}
+        </button>
 
         {/* Time range + live indicator */}
         <div className="ml-auto flex items-center gap-3">
@@ -223,6 +237,7 @@ export function ObservabilityView() {
           {/* Overview tab */}
           {activeTab === 'overview' && (
             <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+              <AirsProbeCard probeState={probeState} probeResult={probeResult} onRun={runProbe} />
               <KpiStrip metrics={metrics} />
               <div className="grid grid-cols-2 gap-4">
                 <ChartCard title="Latency over time (ms)">
@@ -246,7 +261,6 @@ export function ObservabilityView() {
                   />
                 </ChartCard>
               </div>
-              <AirsProbeCard />
             </motion.div>
           )}
 
