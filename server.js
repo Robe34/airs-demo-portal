@@ -289,7 +289,7 @@ function persistTrace({ message, chatResponse, telemetry, backend, resolvedModel
 
   const airsInMs  = timing.airs_input_scan_ms  ?? 0
   const llmMs     = timing.llm_ms              ?? 0
-  const airsOutMs = timing.airs_output_ms      ?? timing.airs_output_scan_ms ?? 0
+  const airsOutMs = timing.airs_output_scan_ms ?? 0
   const totalMs   = timing.total_ms            ?? (airsInMs + llmMs + airsOutMs)
 
   try {
