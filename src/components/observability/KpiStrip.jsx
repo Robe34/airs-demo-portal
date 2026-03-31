@@ -5,9 +5,15 @@ import { Activity, Clock, TrendingUp, ShieldX, Zap, Hash, Shield } from 'lucide-
 function TooltipIcon({ text }) {
   const [pos, setPos] = useState(null)
 
+  const TOOLTIP_W = 256 // w-64
+
   const handleMouseEnter = (e) => {
     const r = e.currentTarget.getBoundingClientRect()
-    setPos({ x: r.left + r.width / 2, y: r.bottom + 8 })
+    const centeredX = r.left + r.width / 2
+    // Clamp so tooltip stays inside viewport with 8px margin
+    const minX = TOOLTIP_W / 2 + 8
+    const maxX = window.innerWidth - TOOLTIP_W / 2 - 8
+    setPos({ x: Math.min(Math.max(centeredX, minX), maxX), y: r.bottom + 8 })
   }
 
   return (
