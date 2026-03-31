@@ -47,9 +47,8 @@ export function TraceTable({ traces, selectedId, onSelect }) {
         >
           <span className="text-xs text-slate-400 truncate pr-2">
             {trace.attack_label
-              ? <><span className="text-orange-400 font-semibold mr-1.5">[{trace.attack_label}]</span>{trace.prompt?.slice(0, 60)}</>
-              : trace.prompt?.slice(0, 80) ?? '—'}
-            {trace.prompt?.length > 80 ? '…' : ''}
+              ? <><span className="text-orange-400 font-semibold mr-1.5">[{trace.attack_label}]</span>{trace.prompt?.slice(0, 60)}{trace.prompt?.length > 60 ? '…' : ''}</>
+              : <>{trace.prompt?.slice(0, 80) ?? '—'}{trace.prompt?.length > 80 ? '…' : ''}</>}
           </span>
           <span className="text-[10px] text-slate-500 font-mono truncate">{trace.backend ?? '—'}</span>
           <span><VerdictBadge verdict={trace.verdict} /></span>

@@ -1,18 +1,29 @@
 // src/hooks/useObservability.js
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
 export function useObservability() {
-  const [metrics, setMetrics]     = useState(null)
-  const [traces, setTraces]       = useState([])
-  const [loading, setLoading]     = useState(true)
-  const [filters, setFilters]     = useState({ status: '', model: '', search: '' })
+  const [metrics, setMetrics]         = useState(null)
+  const [traces, setTraces]           = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [filters, setFilters]         = useState({ status: '', model: '', search: '' })
+  const [debouncedSearch, setDebouncedSearch] = useState('')
+  const debounceTimer = useRef(null)
+
+  // Debounce the search field — status and model filter immediately
+  useEffect(() => {
+    clearTimeout(debounceTimer.current)
+    debounceTimer.current = setTimeout(() => setDebouncedSearch(filters.search), 300)
+    return () => clearTimeout(debounceTimer.current)
+  }, [filters.search])
+
+  const effectiveFilters = { ...filters, search: debouncedSearch }
 
   const fetchData = useCallback(async () => {
     try {
       const qs = new URLSearchParams()
-      if (filters.status) qs.set('status', filters.status)
-      if (filters.model)  qs.set('model',  filters.model)
-      if (filters.search) qs.set('search', filters.search)
+      if (effectiveFilters.status) qs.set('status', effectiveFilters.status)
+      if (effectiveFilters.model)  qs.set('model',  effectiveFilters.model)
+      if (effectiveFilters.search) qs.set('search', effectiveFilters.search)
       qs.set('limit', '100')
 
       const [metricsRes, tracesRes] = await Promise.all([
@@ -26,9 +37,8 @@ export function useObservability() {
     } finally {
       setLoading(false)
     }
-  }, [filters])
+  }, [effectiveFilters.status, effectiveFilters.model, effectiveFilters.search])
 
-  // Initial fetch + 5s auto-refresh
   useEffect(() => {
     fetchData()
     const interval = setInterval(fetchData, 5000)
