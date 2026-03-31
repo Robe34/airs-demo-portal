@@ -70,7 +70,7 @@ function RegionCard({ region, activeEndpoint }) {
                 {showTip && (
                   <div className="absolute left-1/2 -translate-x-1/2 top-5 z-50 w-64 p-2.5 rounded-xl bg-slate-900 border border-white/[0.15] shadow-2xl text-[10px] text-slate-300 leading-relaxed pointer-events-none">
                     <div className="font-bold text-slate-200 mb-1">Probe endpoint</div>
-                    <div className="font-mono text-[9px] text-teal-400 break-all">{endpoint}</div>
+                    <div className="font-mono text-[10px] font-black text-blue-400 break-all">{endpoint}</div>
                     <div className="mt-1.5 text-slate-500">3 POST requests to <span className="text-slate-400">/v1/scan/sync/request</span> with a benign "hello" prompt. Measures full round-trip including TLS handshake.</div>
                   </div>
                 )}
