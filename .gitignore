@@ -19,3 +19,4 @@ aws-chatbot-target/
 # Superpowers brainstorming sessions
 .superpowers/
 
+traces.db
