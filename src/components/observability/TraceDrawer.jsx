@@ -3,8 +3,28 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, ShieldX, ShieldCheck, Zap, AlertTriangle,
-  ChevronDown, Clock, Cpu, Activity,
+  ChevronDown, Clock, Cpu, Activity, Copy,
 } from 'lucide-react'
+
+// ─── CopyButton ───────────────────────────────────────────────────────────────
+function CopyButton({ text }) {
+  const [copied, setCopied] = useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    })
+  }
+  return (
+    <button
+      onClick={copy}
+      className="ml-1 text-slate-600 hover:text-slate-400 transition-colors flex-shrink-0"
+      title="Copy to clipboard"
+    >
+      {copied ? <span className="text-[8px] text-emerald-400">✓</span> : <Copy size={10} />}
+    </button>
+  )
+}
 
 // ─── Span config ──────────────────────────────────────────────────────────────
 const SPAN_CFG = {
@@ -116,7 +136,9 @@ function VerdictBanner({ trace }) {
         <div className="flex-1 min-w-0">
           <div className={`text-base font-black tracking-wide ${styles.text}`}>{trace.verdict}</div>
           <div className="text-[10px] text-slate-500 mt-0.5 truncate">
-            {trace.backend} · {trace.model ?? trace.backend} · {new Date(trace.created_at).toLocaleString()}
+            {trace.backend} · {trace.model ?? trace.backend}
+            {trace.profile ? ` · ${trace.profile}` : ''}
+             · {new Date(trace.created_at).toLocaleString()}
           </div>
         </div>
         <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border flex-shrink-0 ${styles.badge}`}>
@@ -266,6 +288,12 @@ function FlowNode({ span, totalMs, isLast }) {
             {detail && (
               <div className="text-[10px] text-slate-500 mt-1 leading-relaxed">{detail}</div>
             )}
+            {span.metadata?.scan_id && (
+              <span className="flex items-center gap-1 mt-0.5">
+                <span className="text-[9px] font-mono text-slate-600 truncate">{span.metadata.scan_id.slice(0, 16)}…</span>
+                <CopyButton text={span.metadata.scan_id} />
+              </span>
+            )}
           </div>
           {span.latency_ms > 0 && (
             <span className={`text-[11px] font-mono font-bold flex-shrink-0 ${cfg.text}`}>
@@ -382,7 +410,10 @@ export function TraceDrawer({ traceId, onClose }) {
           <div className="flex items-center gap-3 px-5 py-4 border-b border-white/[0.08] flex-shrink-0">
             <div className="flex-1 min-w-0">
               <div className="text-xs font-bold text-slate-300">Trace Detail</div>
-              <div className="text-[9px] font-mono text-slate-600 truncate mt-0.5">{traceId}</div>
+              <div className="flex items-center gap-1">
+                <div className="text-[9px] font-mono text-slate-600 truncate mt-0.5">{traceId}</div>
+                <CopyButton text={traceId} />
+              </div>
             </div>
             <button
               onClick={onClose}
