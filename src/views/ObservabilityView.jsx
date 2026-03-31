@@ -10,6 +10,7 @@ import { VolumeChart } from '../components/observability/VolumeChart'
 import { DetectionDonut } from '../components/observability/DetectionDonut'
 import { ProviderChart } from '../components/observability/ProviderChart'
 import { P95Gauge } from '../components/observability/P95Gauge'
+import { BlockedStageBar } from '../components/observability/BlockedStageBar'
 import { FilterBar } from '../components/observability/FilterBar'
 import { TraceTable } from '../components/observability/TraceTable'
 import { TraceDrawer } from '../components/observability/TraceDrawer'
@@ -51,7 +52,7 @@ function EmptyState({ dispatch }) {
 export function ObservabilityView() {
   const [activeTab, setActiveTab]       = useState('overview')
   const [selectedTraceId, setSelectedTraceId] = useState(null)
-  const { metrics, traces, loading, filters, setFilters } = useObservability()
+  const { metrics, traces, loading, filters, setFilters, since, setSince } = useObservability()
   const { dispatch, state } = useAppContext()
 
   // If a trace was pre-selected from the TelemetrySidebar, open it
@@ -90,10 +91,34 @@ export function ObservabilityView() {
           ))}
         </div>
 
-        {/* Live indicator */}
-        <div className="ml-auto flex items-center gap-1.5 text-[10px] text-slate-600">
-          <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-          Live · refreshes every 5s
+        {/* Time range + live indicator */}
+        <div className="ml-auto flex items-center gap-3">
+          {/* RPM */}
+          {metrics?.rpm != null && (
+            <span className="text-[10px] text-slate-500 font-mono">
+              <span className="text-teal-400 font-bold">{metrics.rpm}</span> req/min
+            </span>
+          )}
+          {/* Time range toggle */}
+          <div className="flex gap-0.5 p-0.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+            {['20m', '1h', '24h', 'all'].map(t => (
+              <button
+                key={t}
+                onClick={() => setSince(t)}
+                className={`px-2 py-1 rounded-md text-[10px] font-semibold transition-all duration-150 ${
+                  since === t
+                    ? 'bg-teal-500/20 border border-teal-500/30 text-teal-400'
+                    : 'text-slate-600 hover:text-slate-400'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] text-slate-600">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+            Live
+          </div>
         </div>
       </div>
 
@@ -121,8 +146,11 @@ export function ObservabilityView() {
                 <ChartCard title="LLM provider distribution">
                   <ProviderChart breakdown={metrics?.provider_breakdown ?? {}} />
                 </ChartCard>
-                <ChartCard title="P95 latency">
-                  <P95Gauge p95Ms={metrics?.p95_total_ms ?? 0} avgMs={metrics?.avg_total_ms ?? 0} />
+                <ChartCard title="Blocked — where in pipeline?">
+                  <BlockedStageBar
+                    blockedAtInput={metrics?.blocked_at_input ?? 0}
+                    blockedAtOutput={metrics?.blocked_at_output ?? 0}
+                  />
                 </ChartCard>
               </div>
             </motion.div>

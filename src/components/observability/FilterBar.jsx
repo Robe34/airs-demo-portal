@@ -4,8 +4,8 @@ import { Search, X } from 'lucide-react'
 
 export function FilterBar({ filters, setFilters }) {
   const set = (key, val) => setFilters(prev => ({ ...prev, [key]: val }))
-  const clear = () => setFilters({ status: '', model: '', search: '' })
-  const hasFilters = filters.status || filters.model || filters.search
+  const clear = () => setFilters({ status: '', model: '', category: '', search: '' })
+  const hasFilters = filters.status || filters.model || filters.category || filters.search
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
@@ -31,6 +31,19 @@ export function FilterBar({ filters, setFilters }) {
         <option value="vertex">Vertex AI</option>
         <option value="bedrock">Bedrock</option>
         <option value="azure">Azure</option>
+      </select>
+
+      {/* Category filter */}
+      <select
+        value={filters.category}
+        onChange={e => set('category', e.target.value)}
+        className="px-3 py-1.5 rounded-lg bg-white/[0.05] border border-white/[0.08] text-slate-300 text-xs focus:outline-none focus:border-teal-500/40"
+      >
+        <option value="">All categories</option>
+        <option value="benign">Benign</option>
+        <option value="malicious">Malicious</option>
+        <option value="jailbreak">Jailbreak</option>
+        <option value="data_leakage">Data Leakage</option>
       </select>
 
       {/* Search */}

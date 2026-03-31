@@ -1,6 +1,6 @@
 // src/components/observability/KpiStrip.jsx
 import React from 'react'
-import { Activity, Clock, TrendingUp, ShieldX, Zap } from 'lucide-react'
+import { Activity, Clock, TrendingUp, ShieldX, Zap, Hash, Shield } from 'lucide-react'
 
 function KpiCard({ label, value, sub, icon: Icon, color = 'text-slate-200', bgColor = 'bg-white/[0.04]', borderColor = 'border-white/[0.08]' }) {
   return (
@@ -64,6 +64,39 @@ export function KpiStrip({ metrics }) {
         bgColor="bg-emerald-500/[0.06]"
         borderColor="border-emerald-500/20"
       />
+      {metrics.avg_airs_overhead_pct != null && (
+        <KpiCard
+          label="AIRS Overhead"
+          value={`${metrics.avg_airs_overhead_pct}%`}
+          sub="of total latency"
+          icon={Zap}
+          color="text-teal-400"
+          bgColor="bg-teal-500/[0.06]"
+          borderColor="border-teal-500/20"
+        />
+      )}
+      {metrics.avg_tokens_per_request != null && (
+        <KpiCard
+          label="Avg Tokens"
+          value={metrics.avg_tokens_per_request}
+          sub="per request"
+          icon={Hash}
+          color="text-violet-400"
+          bgColor="bg-violet-500/[0.06]"
+          borderColor="border-violet-500/20"
+        />
+      )}
+      {metrics.protected_count != null && metrics.total_requests > 0 && (
+        <KpiCard
+          label="Protected"
+          value={metrics.protected_count}
+          sub={`of ${metrics.total_requests} total`}
+          icon={Shield}
+          color="text-emerald-400"
+          bgColor="bg-emerald-500/[0.06]"
+          borderColor="border-emerald-500/20"
+        />
+      )}
     </div>
   )
 }

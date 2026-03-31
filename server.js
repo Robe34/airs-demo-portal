@@ -658,8 +658,8 @@ app.get('/api/health', (_req, res) => {
 // ─── GET /api/traces ──────────────────────────────────────────────────────────
 app.get('/api/traces', (req, res) => {
   try {
-    const { status, model, search, limit = '50', offset = '0' } = req.query
-    const traces = getTraces({ status, model, search, limit: parseInt(limit), offset: parseInt(offset) })
+    const { status, model, category, search, limit = '50', offset = '0' } = req.query
+    const traces = getTraces({ status, model, category, search, limit: parseInt(limit), offset: parseInt(offset) })
     res.json({ traces, total: traces.length })
   } catch (err) {
     console.error('[traces] Error:', err.message)
@@ -670,7 +670,9 @@ app.get('/api/traces', (req, res) => {
 // ─── GET /api/traces/metrics ──────────────────────────────────────────────────
 app.get('/api/traces/metrics', (req, res) => {
   try {
-    res.json(getMetrics())
+    const sinceMap = { '20m': '-20 minutes', '1h': '-1 hours', '24h': '-24 hours', 'all': '-100 years' }
+    const since = sinceMap[req.query.since] ?? '-20 minutes'
+    res.json(getMetrics(since))
   } catch (err) {
     console.error('[traces/metrics] Error:', err.message)
     res.status(500).json({ error: err.message })

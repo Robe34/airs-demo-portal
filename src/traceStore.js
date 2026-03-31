@@ -79,11 +79,12 @@ export function insertSpan(s) {
   })
 }
 
-export function getTraces({ status, model, search, limit = 50, offset = 0 } = {}) {
+export function getTraces({ status, model, category, search, limit = 50, offset = 0 } = {}) {
   let where = '1=1'
   const params = []
   if (status)  { where += ' AND verdict = ?';                params.push(status) }
   if (model)   { where += ' AND backend LIKE ?';             params.push(`%${model}%`) }
+  if (category) { where += ' AND category = ?';              params.push(category) }
   if (search)  { where += ' AND (prompt LIKE ? OR model LIKE ?)'; params.push(`%${search}%`, `%${search}%`) }
   const rows = db().prepare(
     `SELECT * FROM traces WHERE ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`
@@ -103,7 +104,7 @@ export function getTrace(id) {
   }
 }
 
-export function getMetrics() {
+export function getMetrics(since = '-20 minutes') {
   const d = db()
   const total = d.prepare('SELECT COUNT(*) as n FROM traces').get().n
   if (total === 0) return { total_requests: 0, blocked_count: 0, allowed_count: 0, block_rate_pct: 0, avg_total_ms: 0, p95_total_ms: 0, avg_llm_ms: 0, avg_airs_input_ms: 0, avg_airs_output_ms: 0, detection_breakdown: {}, provider_breakdown: {}, latency_series: [], volume_series: [] }
@@ -113,12 +114,19 @@ export function getMetrics() {
       COUNT(*) as total,
       SUM(CASE WHEN verdict='BLOCKED' THEN 1 ELSE 0 END) as blocked,
       SUM(CASE WHEN verdict='ALLOWED' THEN 1 ELSE 0 END) as allowed,
+      SUM(CASE WHEN airs_enabled=1 THEN 1 ELSE 0 END) as protected,
       AVG(total_ms) as avg_total,
       AVG(llm_ms) as avg_llm,
       AVG(airs_input_ms) as avg_airs_in,
-      AVG(airs_output_ms) as avg_airs_out
+      AVG(airs_output_ms) as avg_airs_out,
+      AVG((airs_input_ms + airs_output_ms) * 1.0 / NULLIF(total_ms, 0)) * 100 as avg_airs_overhead_pct,
+      AVG(tokens_in + tokens_out) as avg_tokens_per_request,
+      SUM(CASE WHEN verdict='BLOCKED' AND (llm_ms IS NULL OR llm_ms=0) THEN 1 ELSE 0 END) as blocked_at_input,
+      SUM(CASE WHEN verdict='BLOCKED' AND llm_ms > 0 THEN 1 ELSE 0 END) as blocked_at_output
     FROM traces
   `).get()
+
+  const rpm = d.prepare(`SELECT COUNT(*) as n FROM traces WHERE created_at >= datetime('now', '-1 minute')`).get().n
 
   // P95 latency
   const allLatencies = d.prepare('SELECT total_ms FROM traces WHERE total_ms IS NOT NULL ORDER BY total_ms ASC').all().map(r => r.total_ms)
@@ -140,7 +148,7 @@ export function getMetrics() {
   const provider_breakdown = {}
   for (const r of providerRows) provider_breakdown[r.backend ?? 'unknown'] = r.n
 
-  // Time series — last 20 minutes in 1-minute buckets
+  // Time series — configurable window
   const seriesRows = d.prepare(`
     SELECT
       strftime('%H:%M', created_at) as time,
@@ -150,10 +158,10 @@ export function getMetrics() {
       SUM(CASE WHEN verdict='ALLOWED' THEN 1 ELSE 0 END) as allowed,
       SUM(CASE WHEN verdict='BLOCKED' THEN 1 ELSE 0 END) as blocked
     FROM traces
-    WHERE created_at >= datetime('now', '-20 minutes')
+    WHERE created_at >= datetime('now', ?)
     GROUP BY strftime('%H:%M', created_at)
     ORDER BY time ASC
-  `).all()
+  `).all(since)
 
   const latency_series = seriesRows.map(r => ({ time: r.time, total_ms: Math.round(r.total_ms ?? 0), llm_ms: Math.round(r.llm_ms ?? 0), airs_ms: Math.round(r.airs_ms ?? 0) }))
   const volume_series  = seriesRows.map(r => ({ time: r.time, allowed: r.allowed, blocked: r.blocked }))
@@ -162,12 +170,19 @@ export function getMetrics() {
     total_requests: agg.total,
     blocked_count: agg.blocked,
     allowed_count: agg.allowed,
+    protected_count: agg.protected ?? 0,
+    direct_count: (agg.total - (agg.protected ?? 0)),
     block_rate_pct: agg.total > 0 ? Math.round((agg.blocked / agg.total) * 1000) / 10 : 0,
     avg_total_ms: Math.round(agg.avg_total ?? 0),
     p95_total_ms: p95,
     avg_llm_ms: Math.round(agg.avg_llm ?? 0),
     avg_airs_input_ms: Math.round(agg.avg_airs_in ?? 0),
     avg_airs_output_ms: Math.round(agg.avg_airs_out ?? 0),
+    avg_airs_overhead_pct: agg.avg_airs_overhead_pct != null ? Math.round(agg.avg_airs_overhead_pct * 10) / 10 : null,
+    avg_tokens_per_request: agg.avg_tokens_per_request != null ? Math.round(agg.avg_tokens_per_request) : null,
+    blocked_at_input: agg.blocked_at_input ?? 0,
+    blocked_at_output: agg.blocked_at_output ?? 0,
+    rpm,
     detection_breakdown,
     provider_breakdown,
     latency_series,
