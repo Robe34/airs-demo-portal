@@ -187,43 +187,69 @@ function MetricsStrip({ trace }) {
         </div>
       ))}
     </div>
-      {/* Latency context note */}
-      <div className="rounded-xl bg-blue-500/[0.06] border border-blue-500/20 overflow-hidden">
-        <div className="flex items-center gap-2 px-3 py-2 border-b border-blue-500/10">
-          <span className="text-blue-400 text-sm">ℹ</span>
-          <span className="text-[11px] font-bold text-slate-300">How AIRS scan latency is measured</span>
+      {/* Latency flow diagram */}
+      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(59,130,246,0.2)', background: 'rgba(59,130,246,0.03)' }}>
+        {/* Header */}
+        <div className="flex items-center gap-2 px-3 py-2.5" style={{ borderBottom: '1px solid rgba(59,130,246,0.1)', background: 'rgba(59,130,246,0.05)' }}>
+          <span style={{ color: '#3b82f6', fontSize: 14 }}>ℹ</span>
+          <span className="text-[11px] font-bold tracking-wide" style={{ color: '#0f172a' }}>HOW AIRS SCAN LATENCY IS MEASURED</span>
         </div>
-        <div className="px-3 py-2.5 space-y-2.5 text-[10px] leading-relaxed">
-          {/* Step by step */}
-          <div className="space-y-1.5">
-            {[
-              { step: '1', color: 'bg-slate-400',   label: 'User prompt received',        detail: 'Message arrives at your app server' },
-              { step: '2', color: 'bg-emerald-500',  label: 'HTTP POST → AIRS cloud',      detail: 'server.js fires POST /v1/scan/sync/request · t₀ = Date.now()' },
-              { step: '3', color: 'bg-blue-400',     label: 'Network transit (~150–200ms)', detail: 'TCP connection + TLS handshake + data in-flight to AIRS endpoint' },
-              { step: '4', color: 'bg-violet-400',   label: 'AIRS ML classifier (~500ms)', detail: 'Prompt injection · jailbreak · DLP · toxicity classifiers run on payload' },
-              { step: '5', color: 'bg-orange-400',   label: 'Verdict returned',             detail: 'AIRS responds: action=block/allow · category · scan_id · latencyMs = Date.now() − t₀' },
-              { step: '6', color: 'bg-teal-400',     label: 'LLM called or suppressed',    detail: 'If blocked → response suppressed. If allowed → LLM inference begins.' },
-            ].map(({ step, color, label, detail }) => (
-              <div key={step} className="flex gap-2.5 items-start">
-                <div className={`w-4 h-4 rounded-full ${color} flex items-center justify-center text-[8px] font-black text-white flex-shrink-0 mt-0.5`}>{step}</div>
-                <div>
-                  <span className="font-semibold text-slate-300">{label}</span>
-                  <span className="text-slate-500"> — {detail}</span>
-                </div>
-              </div>
-            ))}
-          </div>
 
-          {/* Summary */}
-          <div className="pt-2 border-t border-blue-500/10 space-y-1">
-            <div className="text-slate-400">
-              <span className="font-semibold text-slate-300">Typical breakdown (US → US): </span>
-              ~150–200ms network + ~500–600ms AIRS processing = <span className="font-semibold text-slate-300">500–900ms total</span>
+        {/* Steps */}
+        <div className="px-3 pt-3 pb-1">
+          {[
+            { n: '1', bg: '#64748b', line: 'linear-gradient(#64748b,#10b981)', bodyBg: '#f8fafc', bodyBorder: '#e2e8f0', title: 'User prompt received', titleColor: '#334155', detail: 'Message arrives at your app server · t₀ = Date.now() starts here', detailColor: '#64748b', badge: null },
+            { n: '2', bg: '#10b981', line: 'linear-gradient(#10b981,#3b82f6)', bodyBg: 'rgba(16,185,129,0.06)', bodyBorder: 'rgba(16,185,129,0.25)', title: 'HTTP POST → Prisma AIRS Cloud', titleColor: '#065f46', detail: 'POST /v1/scan/sync/request · uses AIRS_BASE_URL from your config', detailColor: '#047857', badge: null },
+            { n: '3', bg: '#3b82f6', line: 'linear-gradient(#3b82f6,#8b5cf6)', bodyBg: 'rgba(59,130,246,0.06)', bodyBorder: 'rgba(59,130,246,0.25)', title: 'Network transit', titleColor: '#1e40af', detail: 'TCP handshake + TLS negotiation + payload in-flight to AIRS endpoint', detailColor: '#1d4ed8', badge: { text: '~150–200ms', bg: '#dbeafe', color: '#1e40af', border: '#93c5fd' } },
+            { n: '4', bg: '#8b5cf6', line: 'linear-gradient(#8b5cf6,#f97316)', bodyBg: 'rgba(139,92,246,0.06)', bodyBorder: 'rgba(139,92,246,0.25)', title: 'AIRS ML classifiers run', titleColor: '#5b21b6', detail: 'Prompt injection · Jailbreak · DLP · Toxicity · Agent detection — all in parallel', detailColor: '#6d28d9', badge: { text: '~500–600ms', bg: '#ede9fe', color: '#5b21b6', border: '#c4b5fd' } },
+            { n: '5', bg: '#f97316', line: 'linear-gradient(#f97316,#14b8a6)', bodyBg: 'rgba(249,115,22,0.06)', bodyBorder: 'rgba(249,115,22,0.25)', title: 'Verdict returned to your server', titleColor: '#9a3412', detail: 'action=block|allow · category · scan_id · latencyMs = Date.now() − t₀', detailColor: '#c2410c', badge: null },
+            { n: '6', bg: '#14b8a6', line: null, bodyBg: 'rgba(20,184,166,0.06)', bodyBorder: 'rgba(20,184,166,0.25)', title: 'LLM called or response suppressed', titleColor: '#0f766e', detail: 'BLOCKED → response suppressed immediately · ALLOWED → LLM inference begins', detailColor: '#0d9488', badge: null },
+          ].map(({ n, bg, line, bodyBg, bodyBorder, title, titleColor, detail, detailColor, badge }) => (
+            <div key={n} className="flex gap-3">
+              {/* Left rail */}
+              <div className="flex flex-col items-center flex-shrink-0" style={{ width: 28 }}>
+                <div className="flex items-center justify-center text-[9px] font-black text-white flex-shrink-0 z-10"
+                  style={{ width: 22, height: 22, borderRadius: '50%', background: bg }}>
+                  {n}
+                </div>
+                {line && <div style={{ width: 2, flex: 1, minHeight: 8, background: line, opacity: 0.5, margin: '2px auto' }} />}
+              </div>
+              {/* Card */}
+              <div className="flex-1 mb-2 px-2.5 py-2 rounded-lg text-[10px] leading-relaxed"
+                style={{ background: bodyBg, border: `1px solid ${bodyBorder}` }}>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-bold" style={{ color: titleColor }}>{title}</span>
+                  {badge && (
+                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full"
+                      style={{ background: badge.bg, color: badge.color, border: `1px solid ${badge.border}` }}>
+                      {badge.text}
+                    </span>
+                  )}
+                </div>
+                <div className="mt-0.5" style={{ color: detailColor }}>{detail}</div>
+              </div>
             </div>
-            <div className="text-slate-500">
-              In production, <span className="text-slate-400 font-medium">co-located AIRS endpoints</span> (same cloud region as your app) reduce network to &lt;10ms.
-              <span className="text-slate-400 font-medium"> Async mode</span> runs AIRS scan in parallel with LLM — removing it from the critical path entirely.
-            </div>
+          ))}
+        </div>
+
+        {/* Summary bar */}
+        <div className="mx-3 mb-3 px-3 py-2.5 rounded-xl" style={{ background: '#0f172a' }}>
+          <div className="flex items-center gap-2 flex-wrap text-[11px] mb-1.5">
+            <span style={{ color: '#94a3b8' }}>Typical US → US:</span>
+            <span className="font-black font-mono" style={{ color: '#60a5fa', fontSize: 14 }}>~200ms</span>
+            <span style={{ color: '#475569', fontSize: 10 }}>network</span>
+            <span style={{ color: '#475569', fontWeight: 700 }}>+</span>
+            <span className="font-black font-mono" style={{ color: '#a78bfa', fontSize: 14 }}>~550ms</span>
+            <span style={{ color: '#475569', fontSize: 10 }}>AIRS processing</span>
+            <span style={{ color: '#475569', fontWeight: 700 }}>=</span>
+            <span className="font-black font-mono" style={{ color: '#34d399', fontSize: 15 }}>500–900ms</span>
+          </div>
+          <div className="flex gap-2 flex-wrap text-[10px]" style={{ color: '#64748b' }}>
+            <span className="px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(16,185,129,0.15)', color: '#34d399' }}>Co-located</span>
+            <span>Same cloud region → network &lt;10ms</span>
+            <span style={{ color: '#334155' }}>·</span>
+            <span className="px-2 py-0.5 rounded-full font-semibold" style={{ background: 'rgba(59,130,246,0.15)', color: '#60a5fa' }}>Async mode</span>
+            <span>AIRS runs parallel with LLM → off critical path</span>
           </div>
         </div>
       </div>
