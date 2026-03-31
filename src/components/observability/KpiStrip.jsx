@@ -2,9 +2,9 @@
 import React from 'react'
 import { Activity, Clock, TrendingUp, ShieldX, Zap, Hash, Shield } from 'lucide-react'
 
-function KpiCard({ label, value, sub, icon: Icon, color = 'text-slate-200', bgColor = 'bg-white/[0.04]', borderColor = 'border-white/[0.08]' }) {
+function KpiCard({ label, value, sub, tooltip, icon: Icon, color = 'text-slate-200', bgColor = 'bg-white/[0.04]', borderColor = 'border-white/[0.08]' }) {
   return (
-    <div className={`flex flex-col gap-2 p-4 rounded-2xl border ${bgColor} ${borderColor} flex-1 min-w-0`}>
+    <div title={tooltip} className={`flex flex-col gap-2 p-4 rounded-2xl border ${bgColor} ${borderColor} flex-1 min-w-0 cursor-help`}>
       <div className="flex items-center gap-2">
         <div className="w-7 h-7 rounded-lg bg-white/[0.06] flex items-center justify-center">
           <Icon size={14} className={color} />
@@ -25,6 +25,7 @@ export function KpiStrip({ metrics }) {
         label="Total Requests"
         value={metrics.total_requests}
         sub="all time"
+        tooltip="Total number of LLM API calls captured since the server started."
         icon={Activity}
         color="text-slate-200"
       />
@@ -32,6 +33,7 @@ export function KpiStrip({ metrics }) {
         label="Avg Latency"
         value={metrics.avg_total_ms ? `${metrics.avg_total_ms}ms` : '—'}
         sub="end-to-end"
+        tooltip="Average end-to-end latency per request — from the moment the user sends a message to when the final response is returned. Includes AIRS input scan + LLM inference + AIRS output scan."
         icon={Clock}
         color="text-blue-400"
         bgColor="bg-blue-500/[0.06]"
@@ -41,6 +43,7 @@ export function KpiStrip({ metrics }) {
         label="P95 Latency"
         value={metrics.p95_total_ms ? `${metrics.p95_total_ms}ms` : '—'}
         sub="95th percentile"
+        tooltip="95th percentile latency — 95% of all requests complete faster than this. High values indicate occasional slow outliers. Useful for SLA planning."
         icon={TrendingUp}
         color="text-violet-400"
         bgColor="bg-violet-500/[0.06]"
@@ -50,6 +53,7 @@ export function KpiStrip({ metrics }) {
         label="Blocked"
         value={metrics.blocked_count}
         sub={`${metrics.block_rate_pct ?? 0}% block rate`}
+        tooltip={`Prisma AIRS blocked ${metrics.blocked_count} request${metrics.blocked_count !== 1 ? 's' : ''} — either the prompt was malicious (input scan) or the LLM response was unsafe (output scan). ${metrics.block_rate_pct ?? 0}% of all traffic was blocked.`}
         icon={ShieldX}
         color="text-red-400"
         bgColor="bg-red-500/[0.06]"
@@ -59,6 +63,7 @@ export function KpiStrip({ metrics }) {
         label="Detection Rate"
         value={metrics.total_requests > 0 ? `${metrics.block_rate_pct}%` : '—'}
         sub="threats caught"
+        tooltip={`${metrics.block_rate_pct ?? 0}% of all requests contained a detectable threat (prompt injection, jailbreak, data leakage, etc.) and were blocked by Prisma AIRS before reaching or returning from the LLM.`}
         icon={Zap}
         color="text-emerald-400"
         bgColor="bg-emerald-500/[0.06]"
@@ -69,6 +74,7 @@ export function KpiStrip({ metrics }) {
           label="AIRS Overhead"
           value={`${metrics.avg_airs_overhead_pct}%`}
           sub="of total latency"
+          tooltip={`On average, Prisma AIRS scanning (input + output) accounts for ${metrics.avg_airs_overhead_pct}% of total request latency. The remaining ${Math.round(100 - metrics.avg_airs_overhead_pct)}% is LLM inference time. This shows the cost of protection.`}
           icon={Zap}
           color="text-teal-400"
           bgColor="bg-teal-500/[0.06]"
@@ -80,6 +86,7 @@ export function KpiStrip({ metrics }) {
           label="Avg Tokens"
           value={metrics.avg_tokens_per_request}
           sub="per request"
+          tooltip="Average total tokens (input + output) consumed per LLM call. Input tokens are the prompt sent to the model; output tokens are the generated response. Higher values = higher cost per request."
           icon={Hash}
           color="text-violet-400"
           bgColor="bg-violet-500/[0.06]"
@@ -91,6 +98,7 @@ export function KpiStrip({ metrics }) {
           label="Protected"
           value={metrics.protected_count}
           sub={`of ${metrics.total_requests} total`}
+          tooltip={`${metrics.protected_count} of ${metrics.total_requests} requests were routed through Prisma AIRS (input + output scanning enabled). The remaining ${metrics.total_requests - metrics.protected_count} were sent directly to the LLM without protection.`}
           icon={Shield}
           color="text-emerald-400"
           bgColor="bg-emerald-500/[0.06]"
