@@ -34,13 +34,22 @@ function latencyLabel(ms) {
   return 'High'
 }
 
+const REGION_ENDPOINTS = {
+  us: 'service.api.aisecurity.paloaltonetworks.com',
+  eu: 'service-de.api.aisecurity.paloaltonetworks.com',
+  in: 'service-in.api.aisecurity.paloaltonetworks.com',
+  sg: 'service-sg.api.aisecurity.paloaltonetworks.com',
+}
+
 function RegionCard({ region, activeEndpoint }) {
+  const [showTip, setShowTip] = useState(false)
   const isActive = activeEndpoint?.includes(
     region.id === 'us' ? 'service.api' :
     region.id === 'eu' ? 'service-de' :
     region.id === 'in' ? 'service-in' : 'service-sg'
   )
   const clr = latencyColor(region.avg_ms)
+  const endpoint = REGION_ENDPOINTS[region.id]
 
   return (
     <div className={`p-4 rounded-xl border flex flex-col gap-2 ${isActive ? 'border-teal-500/40 bg-teal-500/[0.06]' : 'border-white/[0.08] bg-white/[0.03]'}`}>
@@ -49,7 +58,24 @@ function RegionCard({ region, activeEndpoint }) {
         <div className="flex items-center gap-2">
           <span className="text-lg">{region.flag}</span>
           <div>
-            <div className="text-xs font-bold text-slate-300">{region.label}</div>
+            <div className="flex items-center gap-1">
+              <span className="text-xs font-bold text-slate-300">{region.label}</span>
+              {/* Tooltip ? button */}
+              <div className="relative">
+                <button
+                  onMouseEnter={() => setShowTip(true)}
+                  onMouseLeave={() => setShowTip(false)}
+                  className="w-3.5 h-3.5 rounded-full bg-white/[0.08] border border-white/[0.12] flex items-center justify-center text-[8px] font-bold text-slate-500 hover:text-slate-300 transition-colors"
+                >?</button>
+                {showTip && (
+                  <div className="absolute left-1/2 -translate-x-1/2 top-5 z-50 w-64 p-2.5 rounded-xl bg-slate-900 border border-white/[0.15] shadow-2xl text-[10px] text-slate-300 leading-relaxed pointer-events-none">
+                    <div className="font-bold text-slate-200 mb-1">Probe endpoint</div>
+                    <div className="font-mono text-[9px] text-teal-400 break-all">{endpoint}</div>
+                    <div className="mt-1.5 text-slate-500">3 POST requests to <span className="text-slate-400">/v1/scan/sync/request</span> with a benign "hello" prompt. Measures full round-trip including TLS handshake.</div>
+                  </div>
+                )}
+              </div>
+            </div>
             {isActive && <div className="text-[8px] text-teal-400 font-semibold uppercase tracking-wider">● Active endpoint</div>}
           </div>
         </div>
