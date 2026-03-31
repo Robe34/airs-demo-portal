@@ -3,19 +3,27 @@ import React, { useState } from 'react'
 import { Activity, Clock, TrendingUp, ShieldX, Zap, Hash, Shield } from 'lucide-react'
 
 function TooltipIcon({ text }) {
-  const [show, setShow] = useState(false)
+  const [pos, setPos] = useState(null)
+
+  const handleMouseEnter = (e) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    setPos({ x: r.left + r.width / 2, y: r.bottom + 8 })
+  }
+
   return (
     <div className="relative ml-auto flex-shrink-0">
       <button
-        onMouseEnter={() => setShow(true)}
-        onMouseLeave={() => setShow(false)}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={() => setPos(null)}
         className="w-4 h-4 rounded-full bg-white/[0.08] border border-white/[0.12] flex items-center justify-center text-[9px] font-bold text-slate-500 hover:text-slate-300 hover:bg-white/[0.14] transition-colors"
       >
         ?
       </button>
-      {show && (
-        <div className="absolute right-0 top-6 z-50 w-56 p-3 rounded-xl bg-slate-900 border border-white/[0.12] shadow-xl text-[11px] text-slate-300 leading-relaxed pointer-events-none">
-          <div className="absolute -top-1.5 right-1.5 w-3 h-3 bg-slate-900 border-l border-t border-white/[0.12] rotate-45" />
+      {pos && (
+        <div
+          className="fixed z-[9999] w-64 p-3 rounded-xl bg-slate-900 border border-white/[0.15] shadow-2xl text-[11px] text-slate-300 leading-relaxed pointer-events-none"
+          style={{ left: pos.x, top: pos.y, transform: 'translateX(-50%)' }}
+        >
           {text}
         </div>
       )}
