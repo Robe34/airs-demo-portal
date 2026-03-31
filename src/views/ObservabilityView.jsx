@@ -68,15 +68,12 @@ function RegionCard({ region, activeEndpoint }) {
                   className="w-3.5 h-3.5 rounded-full bg-white/[0.08] border border-white/[0.12] flex items-center justify-center text-[8px] font-bold text-slate-500 hover:text-slate-300 transition-colors"
                 >?</button>
                 {showTip && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-5 z-50 w-72 p-3 rounded-xl shadow-2xl text-[10px] leading-relaxed pointer-events-none" style={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.15)', color: '#e2e8f0' }}>
-                    <div className="font-bold text-slate-200 mb-1">Probe endpoint</div>
-                    <div className="font-mono text-[10px] font-black text-blue-400 break-all mb-2">{endpoint}</div>
-                    <div className="space-y-1.5 text-slate-400">
-                      <div><span className="text-slate-200 font-semibold">What:</span> 3 HTTP GET requests to the base endpoint — equivalent to <span className="font-mono text-[9px] text-slate-300">{'curl -o /dev/null -s -w "%{time_total}" ' + endpoint}</span></div>
-                      <div><span className="text-slate-200 font-semibold">Credentials?</span> <span className="text-emerald-400 font-semibold">None.</span> No API key used — pure network connectivity test.</div>
-                      <div><span className="text-slate-200 font-semibold">LLM involved?</span> <span className="text-emerald-400 font-semibold">No.</span> No scan, no processing — just measures how long it takes to reach the endpoint.</div>
-                      <div><span className="text-slate-200 font-semibold">What it measures:</span> DNS resolution + TCP connect + TLS handshake + first byte. Pure network round-trip latency to this region.</div>
-                    </div>
+                  <div className="absolute left-1/2 -translate-x-1/2 top-5 z-50 w-60 p-2.5 rounded-xl shadow-2xl text-[10px] leading-relaxed pointer-events-none space-y-1.5" style={{ backgroundColor: '#1e293b', border: '1px solid rgba(255,255,255,0.15)', color: '#cbd5e1' }}>
+                    <div className="font-bold" style={{ color: '#f1f5f9' }}>Probe endpoint</div>
+                    <div className="font-mono text-[9px] font-black break-all" style={{ color: '#60a5fa' }}>{endpoint}</div>
+                    <div><span style={{ color: '#f1f5f9', fontWeight: 600 }}>Method:</span> HTTP GET · no credentials · no scan</div>
+                    <div><span style={{ color: '#f1f5f9', fontWeight: 600 }}>Measures:</span> DNS + TLS + first byte (pure network)</div>
+                    <div><span style={{ color: '#f1f5f9', fontWeight: 600 }}>LLM:</span> <span style={{ color: '#34d399' }}>None involved</span></div>
                   </div>
                 )}
               </div>
