@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Crosshair, ScanSearch, Swords, Shield, ArrowRight, ChevronRight, Terminal, Sun, Moon } from 'lucide-react'
+import { Crosshair, ScanSearch, Swords, Shield, ArrowRight, ChevronRight, Terminal, Sun, Moon, BarChart2 } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
 import airsLogo from '../../prisma-AIRS_RGB_logo_Lockup_Negative.png'
 
@@ -45,6 +45,16 @@ const PILLARS = [
       'Secure the Claude Code CLI with AIRS hook scripts that scan every prompt, URL fetch, and MCP tool call in real time — before any content reaches the model. Zero code changes required.',
     highlights: ['Prompt injection blocking', 'DLP / data exfiltration detection', 'MCP & WebFetch scanning', 'Threat model with test cases'],
   },
+  {
+    id: 'observability',
+    icon: BarChart2,
+    title: 'LLM Telemetry',
+    tag: 'Observability',
+    color: 'teal',
+    description:
+      'Full LLM observability layer that captures every prompt and response as a structured trace. Monitor latency, token usage, threat detection rates, and AIRS overhead in real time — with a searchable prompt history log.',
+    highlights: ['Live pipeline flow traces', 'Latency & token analytics', 'Threat detection breakdown', 'Prompt history log'],
+  },
 ]
 
 const COLOR_MAP = {
@@ -52,6 +62,7 @@ const COLOR_MAP = {
   blue:   { text: 'text-blue-400',   border: 'border-blue-500/30',   bg: 'bg-blue-500/10',   tag: 'bg-blue-500/15 text-blue-400',   btn: 'bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 border-blue-500/30' },
   orange: { text: 'text-orange-400', border: 'border-orange-500/30', bg: 'bg-orange-500/10', tag: 'bg-orange-500/15 text-orange-400', btn: 'bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border-orange-500/30' },
   purple: { text: 'text-purple-400', border: 'border-purple-500/30', bg: 'bg-purple-500/10', tag: 'bg-purple-500/15 text-purple-400', btn: 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border-purple-500/30' },
+  teal:   { text: 'text-teal-400',   border: 'border-teal-500/30',   bg: 'bg-teal-500/10',   tag: 'bg-teal-500/15 text-teal-400',   btn: 'bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border-teal-500/30' },
 }
 
 const containerVariants = {
@@ -129,14 +140,14 @@ export function HomeView() {
 
         <motion.p variants={itemVariants} className="mt-4 max-w-xl text-sm text-slate-400 leading-relaxed">
           An interactive security demonstration showing how <span className="text-white font-medium">Prisma AIRS</span> protects
-          AI applications across four attack surfaces — runtime API interception, model supply-chain scanning, automated red teaming,
-          and Claude Code CLI hook-based protection. Toggle protection on and off to see the difference in real time.
+          AI applications across five pillars — runtime API interception, model supply-chain scanning, automated red teaming,
+          Claude Code CLI protection, and full LLM telemetry. Toggle protection on and off to see the difference in real time.
         </motion.p>
       </motion.div>
 
       {/* Pillar cards */}
       <motion.div
-        className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 px-8 pb-12 max-w-7xl mx-auto w-full"
+        className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-5 px-8 pb-12 max-w-[1600px] mx-auto w-full"
         variants={containerVariants}
         initial="hidden"
         animate="visible"

@@ -38,8 +38,8 @@ const NAV_ITEMS = [
   },
   {
     id: 'observability',
-    label: 'Observability',
-    sublabel: 'LLM trace explorer',
+    label: 'LLM Telemetry',
+    sublabel: 'Prompt history & metrics',
     icon: BarChart2,
     color: { text: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/30', bar: 'bg-teal-400' },
   },

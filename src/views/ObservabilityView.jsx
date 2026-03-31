@@ -71,7 +71,7 @@ export function ObservabilityView() {
       {/* Header */}
       <div className="flex items-center gap-4 px-6 py-4 border-b border-white/[0.08] flex-shrink-0">
         <BarChart2 size={16} className="text-teal-400" />
-        <span className="text-sm font-semibold text-slate-300">Observability</span>
+        <span className="text-sm font-semibold text-slate-300">LLM Telemetry</span>
 
         {/* Tab switcher */}
         <div className="flex gap-1 ml-4 p-1 rounded-lg bg-white/[0.04] border border-white/[0.06]">
