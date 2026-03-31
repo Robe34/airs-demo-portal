@@ -385,6 +385,12 @@ export function TraceDrawer({ traceId, onClose }) {
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [onClose])
+
+  useEffect(() => {
     if (!traceId) return
     setTrace(null)
     setLoading(true)
