@@ -500,13 +500,13 @@ export function HomeViewV2() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.22 }}
-              className="absolute inset-0 z-20"
+              className="fixed inset-0 z-20"
               style={{ background: 'rgba(5,6,12,0.72)', backdropFilter: 'blur(3px)' }}
               onClick={handleClose}
             />
 
             {/* Hero card — centered */}
-            <div className="absolute inset-0 z-30 flex items-center justify-center p-8 pointer-events-none">
+            <div className="fixed inset-0 z-30 flex items-center justify-center p-8 pointer-events-none">
               <div className="pointer-events-auto w-full flex justify-center">
                 {selectedPillar && (
                   <HeroCard
