@@ -7,12 +7,12 @@ import { PulsingDot } from '../shared/PulsingDot'
 import airsLogo from '../../../prisma-AIRS_RGB_logo_Lockup_Negative.png'
 
 const VIEW_LABELS = {
-  apiIntercept:  { label: 'API Intercept',                sublabel: 'Real-time payload interception & telemetry', text: 'text-red-400' },
-  modelScanning: { label: 'Model Scanning',               sublabel: 'AI model vulnerability assessment',          text: 'text-blue-400' },
-  redTeaming:    { label: 'Red Teaming',                  sublabel: 'Automated adversarial campaign runner',      text: 'text-orange-400' },
-  claudeHooks:   { label: 'AI Code Assistant Protection', sublabel: 'Claude Code hooks integration guide',        text: 'text-purple-400' },
-  observability:    { label: 'LLM Telemetry',                sublabel: 'Prompt history, metrics & pipeline traces',  text: 'text-teal-400' },
-  developerCorner:  { label: 'Developer Corner',             sublabel: 'Integration guide & API reference',          text: 'text-indigo-400' },
+  apiIntercept:    { label: 'API Intercept',                sublabel: 'Real-time payload interception & telemetry', text: 'text-red-400',    color: '#EF4444' },
+  modelScanning:   { label: 'Model Scanning',               sublabel: 'AI model vulnerability assessment',          text: 'text-blue-400',   color: '#3B82F6' },
+  redTeaming:      { label: 'Red Teaming',                  sublabel: 'Automated adversarial campaign runner',      text: 'text-orange-400', color: '#F97316' },
+  claudeHooks:     { label: 'AI Code Assistant Protection', sublabel: 'Claude Code hooks integration guide',        text: 'text-purple-400', color: '#8B5CF6' },
+  observability:   { label: 'LLM Telemetry',                sublabel: 'Prompt history, metrics & pipeline traces',  text: 'text-teal-400',   color: '#10B981' },
+  developerCorner: { label: 'Developer Corner',             sublabel: 'Integration guide & API reference',          text: 'text-indigo-400', color: '#06B6D4' },
 }
 
 export function TopBar() {
@@ -21,7 +21,10 @@ export function TopBar() {
   const view = VIEW_LABELS[state.activeView] ?? VIEW_LABELS.apiIntercept
 
   return (
-    <header className="flex items-center h-16 px-6 border-b flex-shrink-0" style={{ background: '#1e2433', borderColor: 'rgba(255,255,255,0.08)' }}>
+    <header className="flex items-center h-16 px-6 border-b flex-shrink-0" style={{
+      background: view.color ? `linear-gradient(135deg, #1a1f2e 0%, ${view.color}18 100%)` : '#1e2433',
+      borderBottom: view.color ? `1px solid ${view.color}35` : '1px solid rgba(255,255,255,0.08)',
+    }}>
       {/* Home + Breadcrumb */}
       <div className="flex items-center gap-3 flex-1">
         <button
