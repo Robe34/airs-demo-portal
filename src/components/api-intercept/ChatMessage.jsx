@@ -259,9 +259,9 @@ const hebrew = isHebrewText(message.content || '')
             <ArrowUpFromLine size={9} />{message.tokensOut.toLocaleString()} out
           </span>
         )}
-        {message.telemetry && onOpenTelemetry && (
+        {message.traceId && onOpenTelemetry && (
           <button
-            onClick={() => onOpenTelemetry(message.telemetry)}
+            onClick={() => onOpenTelemetry(message.traceId)}
             className="flex items-center gap-1 text-slate-500 hover:text-blue-400 transition-colors"
             title="View prompt telemetry"
           >

@@ -87,6 +87,7 @@ export function useAttackSimulator() {
         tokensIn: data.llm?.tokens_in ?? null,
         tokensOut: data.llm?.tokens_out ?? null,
         timestamp: new Date().toISOString(),
+        traceId: data.trace_id ?? null,
         telemetry: { ...telemetry, chatResponse, prompt: payload, attackMeta },
       }])
       setActiveTelemetry({ ...telemetry, chatResponse })

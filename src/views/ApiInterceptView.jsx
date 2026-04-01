@@ -173,7 +173,7 @@ export function ApiInterceptView() {
 
       {/* Prompt Telemetry Drawer */}
       <PromptTelemetryDrawer
-        telemetry={telemetryDrawer}
+        traceId={telemetryDrawer}
         onClose={() => setTelemetryDrawer(null)}
       />
     </div>

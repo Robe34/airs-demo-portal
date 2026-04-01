@@ -384,8 +384,8 @@ app.post('/api/chat', async (req, res) => {
         },
         chatResponse: { role: 'assistant', content: r.text, blocked: false, block_reason: null },
       }
-      persistTrace({ message, chatResponse: responsePayload.chatResponse, telemetry: responsePayload, backend, resolvedModelId, airsEnabled: false, attackMeta: req.body.attackMeta ?? null })
-      return res.json(responsePayload)
+      const traceId = persistTrace({ message, chatResponse: responsePayload.chatResponse, telemetry: responsePayload, backend, resolvedModelId, airsEnabled: false, attackMeta: req.body.attackMeta ?? null })
+      return res.json({ ...responsePayload, trace_id: traceId })
     } catch (err) {
       console.error('[LLM] Error:', err.message)
       return res.status(502).json({ error: `LLM call failed: ${err.message}` })
@@ -401,8 +401,8 @@ app.post('/api/chat', async (req, res) => {
 
     if (airsPromptScan.data.action === 'block') {
       const telemetry = buildTelemetry({ airsPromptScan, airsResponseScan: null, llmLatencyMs: null, modelLabel, llmText: null, llmTokens: null, llmFinishReason: null })
-      persistTrace({ message, chatResponse: telemetry.chatResponse, telemetry, backend, resolvedModelId, airsEnabled: true, attackMeta: req.body.attackMeta ?? null })
-      return res.json(telemetry)
+      const traceId = persistTrace({ message, chatResponse: telemetry.chatResponse, telemetry, backend, resolvedModelId, airsEnabled: true, attackMeta: req.body.attackMeta ?? null })
+      return res.json({ ...telemetry, trace_id: traceId })
     }
 
     // Step 2: Call LLM
@@ -425,8 +425,8 @@ app.post('/api/chat', async (req, res) => {
     console.log(`[AIRS] Response verdict: ${airsResponseScan.data.action} / ${airsResponseScan.data.category}`)
 
     const telemetry = buildTelemetry({ airsPromptScan, airsResponseScan, llmLatencyMs, modelLabel, llmText, llmTokens, llmFinishReason })
-    persistTrace({ message, chatResponse: telemetry.chatResponse, telemetry, backend, resolvedModelId, airsEnabled: true, attackMeta: req.body.attackMeta ?? null })
-    return res.json(telemetry)
+    const traceId = persistTrace({ message, chatResponse: telemetry.chatResponse, telemetry, backend, resolvedModelId, airsEnabled: true, attackMeta: req.body.attackMeta ?? null })
+    return res.json({ ...telemetry, trace_id: traceId })
   } catch (err) {
     console.error('[server] Unhandled error:', err)
     res.status(500).json({ error: err.message })
