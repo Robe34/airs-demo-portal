@@ -324,7 +324,7 @@ const staggerContainer = {
   animate: { transition: { staggerChildren: 0.06 } },
 }
 
-export function ChatCenter({ messages, isLoading, onSendMessage, onClear, backend, model }) {
+export function ChatCenter({ messages, isLoading, onSendMessage, onClear, backend, model, onOpenTelemetry }) {
   const theme = useProtectionTheme()
   const hasConversation = messages.some(m => m.role === 'user' || m.role === 'assistant')
   const endRef = useRef(null)
@@ -417,6 +417,7 @@ export function ChatCenter({ messages, isLoading, onSendMessage, onClear, backen
                     onResendHebrew={msg.role === 'user' ? () => handleSendHebrew(msg.content) : undefined}
                     isLoading={isLoading || translating === msg.content}
                     isTranslating={translating === msg.content}
+                    onOpenTelemetry={onOpenTelemetry}
                   />
                 </div>
               ))}
