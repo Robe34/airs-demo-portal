@@ -7,7 +7,7 @@ import {
   Layers, FileCode, Clock, History, Copy,
 } from 'lucide-react'
 import { CodeBlock } from '../shared/CodeBlock'
-import { SDK_SNIPPETS } from '../../data/mockData'
+import { DEV_CORNER_TABS } from '../../data/mockData'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 import { useAppContext } from '../../context/AppContext'
 
@@ -604,30 +604,72 @@ export function TelemetrySidebar({ telemetry }) {
         )}
 
         {/* ── Dev Corner ── */}
-        {telemetry && (
-          <Section title="Dev Corner" icon={FileCode} iconColor="text-yellow-400" defaultOpen={false}>
-            <div className="flex gap-1 mb-3 p-1 bg-black/30 rounded-lg border border-white/10">
-              {['python', 'node'].map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setSdkTab(tab)}
-                  className={`flex-1 py-1.5 rounded-md text-[10px] font-semibold transition-all duration-150 ${
-                    sdkTab === tab
-                      ? `${theme.primaryBg2} ${theme.primaryText} border ${theme.primaryBorder2}`
-                      : 'text-slate-600 hover:text-slate-400'
-                  }`}
-                >
-                  {tab === 'python' ? 'Python' : 'Node.js'}
-                </button>
-              ))}
+        <Section title="Dev Corner" icon={FileCode} iconColor="text-yellow-400" defaultOpen={false}>
+          {/* Architecture flow */}
+          <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
+            {['User Prompt', 'Your App', 'Prisma AIRS', 'LLM', 'Prisma AIRS', 'Response'].map((label, i, arr) => (
+              <React.Fragment key={i}>
+                <div className={`flex-shrink-0 px-2 py-1 rounded-lg text-[9px] font-bold text-center leading-tight ${
+                  label === 'Prisma AIRS'
+                    ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-400'
+                    : label === 'LLM'
+                    ? 'bg-blue-500/20 border border-blue-500/40 text-blue-400'
+                    : 'bg-white/[0.06] border border-white/10 text-slate-400'
+                }`}>
+                  {label}
+                </div>
+                {i < arr.length - 1 && (
+                  <span className="text-slate-700 text-[10px] flex-shrink-0">→</span>
+                )}
+              </React.Fragment>
+            ))}
+          </div>
+
+          {/* Tab switcher */}
+          <div className="flex gap-1 mb-3 p-1 bg-black/30 rounded-lg border border-white/10">
+            {DEV_CORNER_TABS.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setSdkTab(tab.id)}
+                className={`flex-1 py-1.5 rounded-md text-[9px] font-semibold transition-all duration-150 ${
+                  sdkTab === tab.id
+                    ? `${theme.primaryBg2} ${theme.primaryText} border ${theme.primaryBorder2}`
+                    : 'text-slate-600 hover:text-slate-400'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
+          {/* What / Why / Where card */}
+          {DEV_CORNER_TABS.filter(t => t.id === sdkTab).map(tab => (
+            <div key={tab.id} className="mb-3 p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.07] space-y-1">
+              <div className="flex gap-1.5 text-[10px]">
+                <span className="font-bold text-yellow-400 flex-shrink-0">What:</span>
+                <span className="text-slate-400">{tab.what}</span>
+              </div>
+              <div className="flex gap-1.5 text-[10px]">
+                <span className="font-bold text-emerald-400 flex-shrink-0">Why:</span>
+                <span className="text-slate-400">{tab.why}</span>
+              </div>
+              <div className="flex gap-1.5 text-[10px]">
+                <span className="font-bold text-blue-400 flex-shrink-0">Where:</span>
+                <span className="text-slate-400">{tab.where}</span>
+              </div>
             </div>
+          ))}
+
+          {/* Code block */}
+          {DEV_CORNER_TABS.filter(t => t.id === sdkTab).map(tab => (
             <CodeBlock
-              code={SDK_SNIPPETS[sdkTab]}
-              language={sdkTab === 'python' ? 'python' : 'javascript'}
-              maxHeight="260px"
+              key={tab.id}
+              code={tab.code}
+              language={tab.language}
+              maxHeight="280px"
             />
-          </Section>
-        )}
+          ))}
+        </Section>
 
         {/* ── Recent Traces ── */}
         <Section title="Recent Traces" icon={History} iconColor="text-teal-400" defaultOpen={false}>

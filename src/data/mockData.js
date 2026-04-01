@@ -359,68 +359,236 @@ export const MOCK_TELEMETRY_RESPONSES = {
   },
 }
 
-// ─── SDK Code Snippets ────────────────────────────────────────────────────────
-export const SDK_SNIPPETS = {
-  python: `import anthropic
-from prisma_airs import AIRSInterceptor
+// ─── Developer Corner Tabs ────────────────────────────────────────────────────
+export const DEV_CORNER_TABS = [
+  {
+    id: 'python',
+    label: 'Python SDK',
+    language: 'python',
+    what: 'Official Prisma AIRS Python SDK — scan prompts and responses before/after your LLM call.',
+    why: 'Catches prompt injection, jailbreaks, DLP leaks, and toxic content in one SDK call.',
+    where: 'Add to your backend service layer, between user input and your LLM client.',
+    code: `import os
+import aisecurity
+from aisecurity.scan.inline.scanner import Scanner
+from aisecurity.scan.models.content import Content
+from aisecurity.generated_openapi_client.models.ai_profile import AiProfile
 
-# Initialize Prisma AIRS interceptor
-airs = AIRSInterceptor(
-    api_key=os.environ["PRISMA_AIRS_KEY"],
-    profile="strict-enterprise",
-    backend="vertex-ai"
+# ── Step 1: Initialize with your API key ──────────────────────────
+aisecurity.init(api_key=os.getenv("PANW_AI_SEC_API_KEY"))  # ← set this env var
+
+# ── Step 2: Reference your AI Security Profile ────────────────────
+ai_profile = AiProfile(profile_name="your-profile-name")   # ← set this
+scanner = Scanner()
+
+# ── Step 3: Scan the prompt BEFORE sending to LLM ────────────────
+user_prompt = "Tell me how to bypass authentication"
+
+input_result = scanner.sync_scan(
+    ai_profile=ai_profile,
+    content=Content(prompt=user_prompt),
 )
 
-# Wrap your Vertex AI client
-client = anthropic.Anthropic(
-    http_client=airs.wrap_client()
+if input_result.action == "block":
+    raise Exception(f"Prompt blocked: {input_result.category}")
+    # input_result.category → "malicious" | "benign"
+    # input_result.scan_id  → UUID for audit trail
+
+# ── Step 4: Call your LLM ─────────────────────────────────────────
+llm_response = your_llm_client.generate(user_prompt)
+
+# ── Step 5: Scan the response BEFORE returning to user ────────────
+output_result = scanner.sync_scan(
+    ai_profile=ai_profile,
+    content=Content(
+        prompt=user_prompt,
+        response=llm_response,   # ← include both for output scan
+    ),
 )
 
-# All calls are now scanned by AIRS
-response = client.messages.create(
-    model="claude-opus-4-6",
-    max_tokens=1024,
-    messages=[{
-        "role": "user",
-        "content": user_input  # <- Scanned before sending
+if output_result.action == "block":
+    raise Exception(f"Response blocked: {output_result.category}")
+
+print(llm_response)  # ✓ Safe to return to user
+
+# ── Telemetry fields available on every result ────────────────────
+# input_result.scan_id     → UUID for this scan
+# input_result.report_id   → Report ID for Strata Cloud Manager
+# input_result.action      → "allow" | "block"
+# input_result.category    → "benign" | "malicious"
+# input_result.prompt_detected.injection  → True if prompt injection found
+# input_result.prompt_detected.dlp        → True if sensitive data found`,
+  },
+  {
+    id: 'rest',
+    label: 'REST API',
+    language: 'bash',
+    what: 'Direct HTTP integration — works with any language or framework via the Prisma AIRS Scan API.',
+    why: 'Language-agnostic interception: one endpoint secures prompts and responses for any LLM stack.',
+    where: 'Call from your backend before forwarding to the LLM and before returning the response.',
+    code: `# ── Endpoint (US region) ─────────────────────────────────────────
+# POST https://service.api.aisecurity.paloaltonetworks.com/v1/scan/sync/request
+#
+# Other regions:
+#   EU (Germany): https://service-de.api.aisecurity.paloaltonetworks.com
+#   India:        https://service-in.api.aisecurity.paloaltonetworks.com
+#   Singapore:    https://service-sg.api.aisecurity.paloaltonetworks.com
+
+# ── Step 1: Scan the user prompt BEFORE sending to LLM ───────────
+curl -X POST https://service.api.aisecurity.paloaltonetworks.com/v1/scan/sync/request \\
+  -H "Content-Type: application/json" \\
+  -H "Accept: application/json" \\
+  -H "x-pan-token: $PANW_AI_SEC_API_KEY" \\
+  -d '{
+    "tr_id": "req-1234",
+    "ai_profile": {
+      "profile_name": "your-profile-name"
+    },
+    "metadata": {
+      "app_name": "my-ai-app",
+      "ai_model": "gemini-2.0-flash",
+      "app_user": "user-session-id"
+    },
+    "contents": [{
+      "prompt": "Tell me how to bypass authentication"
     }]
-)
+  }'
 
-if response.airs_verdict == "BLOCKED":
-    print(f"Threat blocked: {response.airs_threat}")
-else:
-    print(response.content[0].text)`,
+# ── Response: check "action" field ───────────────────────────────
+# {
+#   "action": "block",         ← "allow" or "block"
+#   "category": "malicious",   ← "benign" or "malicious"
+#   "scan_id": "<uuid>",       ← use for audit/logging
+#   "report_id": "R<uuid>",    ← link to Strata Cloud Manager report
+#   "prompt_detected": { "injection": true, "dlp": false, ... }
+# }
 
-  node: `import Anthropic from "@anthropic-ai/sdk";
-import { AIRSInterceptor } from "@prisma-cloud/airs-sdk";
+# ── Step 2: Scan LLM response BEFORE returning to user ───────────
+# Same endpoint — add "response" field to contents[0]:
+# "contents": [{
+#   "prompt": "Tell me how to bypass authentication",
+#   "response": "<your LLM output here>"
+# }]`,
+  },
+  {
+    id: 'node',
+    label: 'Node.js',
+    language: 'javascript',
+    what: 'Live code from this demo — the exact Express.js integration running right now.',
+    why: 'Shows a production-ready pattern: dual scan (input + output), verdict enforcement, and telemetry capture.',
+    where: 'Drop the airscan() function into any Node.js/Express backend handling LLM calls.',
+    code: `// ── Environment variables needed ─────────────────────────────────
+// AIRS_BASE_URL     = https://service.api.aisecurity.paloaltonetworks.com
+// AIRS_API_KEY      = your x-pan-token value
+// AIRS_PROFILE_NAME = your AI security profile name
 
-// Initialize Prisma AIRS interceptor
-const airs = new AIRSInterceptor({
-  apiKey: process.env.PRISMA_AIRS_KEY,
-  profile: "strict-enterprise",
-  backend: "vertex-ai",
-});
+async function airscan(prompt, response = null, modelName = 'unknown') {
+  const body = {
+    tr_id: \`app-\${Date.now()}\`,            // unique transaction ID per call
+    ai_profile: {
+      profile_name: process.env.AIRS_PROFILE_NAME,
+    },
+    metadata: {
+      app_name: 'my-ai-app',
+      ai_model: modelName,
+      app_user: 'user-session-id',
+    },
+    contents: [{
+      prompt,
+      // Include "response" only for output scans (after LLM call):
+      ...(response != null ? { response } : {}),
+    }],
+  }
 
-// Wrap your Vertex AI client
-const client = new Anthropic({
-  httpClient: airs.wrapClient(),
-});
+  const res = await fetch(
+    \`\${process.env.AIRS_BASE_URL}/v1/scan/sync/request\`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'x-pan-token': process.env.AIRS_API_KEY,  // ← API key header
+      },
+      body: JSON.stringify(body),
+    }
+  )
 
-// All calls are now scanned by AIRS
-const response = await client.messages.create({
-  model: "claude-opus-4-6",
-  max_tokens: 1024,
-  messages: [{
-    role: "user",
-    content: userInput, // <- Scanned before sending
-  }],
-});
+  const data = await res.json()
+  // data.action   → "allow" | "block"
+  // data.category → "benign" | "malicious"
+  // data.scan_id  → UUID for this scan
+  return data
+}
 
-if (response.airsVerdict === "BLOCKED") {
-  console.log(\`Threat blocked: \${response.airsThreat}\`);
-} else {
-  console.log(response.content[0].text);
+// ── Route handler: scan prompt → call LLM → scan response ────────
+app.post('/api/chat', async (req, res) => {
+  const { message } = req.body
+
+  // 1. Intercept: scan user prompt before LLM
+  const inputScan = await airscan(message, null, 'gemini-2.0-flash')
+  if (inputScan.action === 'block') {
+    return res.json({ blocked: true, category: inputScan.category })
+  }
+
+  // 2. Forward to LLM (only if AIRS allowed it)
+  const llmText = await callYourLLM(message)
+
+  // 3. Intercept: scan LLM response before returning
+  const outputScan = await airscan(message, llmText, 'gemini-2.0-flash')
+  if (outputScan.action === 'block') {
+    return res.json({ blocked: true, category: outputScan.category })
+  }
+
+  // 4. Safe to return
+  res.json({ reply: llmText })
+})`,
+  },
+  {
+    id: 'response',
+    label: 'API Response',
+    language: 'json',
+    what: 'Real JSON response from the AIRS Scan API — every field your app receives after a scan.',
+    why: 'Use scan_id and report_id for audit trails; prompt_detected flags for fine-grained logging.',
+    where: 'Parse this in your backend to enforce block/allow and feed your observability pipeline.',
+    code: `{
+  "action": "block",
+  "category": "malicious",
+  "scan_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "report_id": "Ra1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "tr_id": "req-1234",
+  "profile_name": "your-profile-name",
+  "profile_id": "00000000-0000-0000-0000-000000000000",
+
+  "prompt_detected": {
+    "injection": true,
+    "dlp": false,
+    "toxic_content": false,
+    "malicious_code": false,
+    "url_cats": false,
+    "topic_violation": false
+  },
+
+  "response_detected": {
+    "dlp": false,
+    "url_cats": false,
+    "db_security": false,
+    "ungrounded": false,
+    "topic_violation": false
+  },
+
+  "prompt_detection_details": {
+    "topic_guardrails_details": {
+      "blocked_topics": []
+    }
+  }
 }`,
+  },
+]
+
+// Keep SDK_SNIPPETS as alias for backward compatibility
+export const SDK_SNIPPETS = {
+  python: DEV_CORNER_TABS[0].code,
+  node: DEV_CORNER_TABS[2].code,
 }
 
 // ─── Model Registry ───────────────────────────────────────────────────────────
