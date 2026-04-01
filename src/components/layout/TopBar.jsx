@@ -21,7 +21,7 @@ export function TopBar() {
   const view = VIEW_LABELS[state.activeView] ?? VIEW_LABELS.apiIntercept
 
   return (
-    <header className="flex items-center h-16 px-6 border-b border-white/10 bg-base-900/60 backdrop-blur-md flex-shrink-0">
+    <header className="flex items-center h-16 px-6 border-b flex-shrink-0" style={{ background: '#1e2433', borderColor: 'rgba(255,255,255,0.08)' }}>
       {/* Home + Breadcrumb */}
       <div className="flex items-center gap-3 flex-1">
         <button
