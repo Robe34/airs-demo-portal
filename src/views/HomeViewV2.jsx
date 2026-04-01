@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Crosshair, ScanSearch, Swords, Terminal, BarChart2, Code2,
@@ -173,19 +173,28 @@ function MiniCard({ pillar, index, anySelected, onClick }) {
 }
 
 // ─── Hero expanded card ────────────────────────────────────────────────────────
-function HeroCard({ pillar, onClose, onLaunch }) {
+function HeroCard({ pillar, onClose, onLaunch, isDark }) {
   const Icon = pillar.icon
+  const cardBg = isDark ? 'rgba(10,11,18,0.97)' : 'rgba(255,255,255,0.97)'
+  const textColor = isDark ? '#ffffff' : '#0f172a'
+  const descColor = isDark ? 'rgba(148,163,184,0.9)' : 'rgba(51,65,85,0.9)'
+  const highlightText = isDark ? '#e2e8f0' : '#1e293b'
+  const highlightBg = (accent) => isDark ? `${accent}0e` : `${accent}12`
+  const highlightBorder = (accent) => isDark ? `${accent}25` : `${accent}40`
+  const closeBg = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)'
+  const closeBorder = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.12)'
+  const launchTextColor = isDark ? '#08090f' : '#ffffff'
 
   return (
     <motion.div
       layoutId={`card-${pillar.id}`}
       className="relative rounded-3xl overflow-hidden"
       style={{
-        background: 'rgba(10,11,18,0.96)',
+        background: cardBg,
         border: `1px solid ${pillar.accent}45`,
         backdropFilter: 'blur(48px)',
         WebkitBackdropFilter: 'blur(48px)',
-        boxShadow: `0 0 90px ${pillar.glow}, 0 0 240px ${pillar.dim}, inset 0 1px 0 rgba(255,255,255,0.06)`,
+        boxShadow: `0 0 90px ${pillar.glow}, 0 0 240px ${pillar.dim}, inset 0 1px 0 ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}`,
         maxWidth: 700,
         width: '100%',
       }}
@@ -208,11 +217,11 @@ function HeroCard({ pillar, onClose, onLaunch }) {
         transition={{ delay: 0.15 }}
         onClick={onClose}
         className="absolute top-5 right-5 w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all"
-        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-        whileHover={{ scale: 1.12, background: 'rgba(255,255,255,0.14)' }}
+        style={{ background: closeBg, border: `1px solid ${closeBorder}` }}
+        whileHover={{ scale: 1.12 }}
         whileTap={{ scale: 0.93 }}
       >
-        <X size={13} className="text-slate-400" />
+        <X size={13} style={{ color: isDark ? '#94a3b8' : '#475569' }} />
       </motion.button>
 
       <div className="relative p-10">
@@ -234,7 +243,7 @@ function HeroCard({ pillar, onClose, onLaunch }) {
             <span className="text-[9px] font-black tracking-[0.25em] uppercase block mb-2" style={{ color: pillar.accent, opacity: 0.8 }}>
               {pillar.tag}
             </span>
-            <h2 className="text-[32px] font-black tracking-tight leading-none text-white">
+            <h2 className="text-[32px] font-black tracking-tight leading-none" style={{ color: textColor }}>
               {pillar.title}
             </h2>
           </div>
@@ -246,7 +255,7 @@ function HeroCard({ pillar, onClose, onLaunch }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.11 }}
           className="text-[13px] leading-relaxed mb-8"
-          style={{ color: 'rgba(148,163,184,0.9)' }}
+          style={{ color: descColor }}
         >
           {pillar.description}
         </motion.p>
@@ -266,12 +275,12 @@ function HeroCard({ pillar, onClose, onLaunch }) {
               transition={{ delay: 0.18 + i * 0.05 }}
               className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl"
               style={{
-                background: `${pillar.accent}0e`,
-                border: `1px solid ${pillar.accent}25`,
+                background: highlightBg(pillar.accent),
+                border: `1px solid ${highlightBorder(pillar.accent)}`,
               }}
             >
               <div className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ background: pillar.accent }} />
-              <span className="text-[12px] text-slate-300 font-medium">{h}</span>
+              <span className="text-[12px] font-medium" style={{ color: highlightText }}>{h}</span>
             </motion.div>
           ))}
         </motion.div>
@@ -285,7 +294,7 @@ function HeroCard({ pillar, onClose, onLaunch }) {
           className="flex items-center gap-3 px-8 py-3.5 rounded-xl font-black text-sm tracking-wide transition-all"
           style={{
             background: pillar.accent,
-            color: '#08090f',
+            color: launchTextColor,
             boxShadow: `0 0 36px ${pillar.glow}`,
           }}
           whileHover={{ scale: 1.04, boxShadow: `0 0 52px ${pillar.glow}` }}
@@ -310,6 +319,12 @@ export function HomeViewV2() {
   const handleSelect = (id) => setSelected(id)
   const handleClose = () => setSelected(null)
   const handleLaunch = () => { if (selected) navigate(selected) }
+
+  useEffect(() => {
+    const handler = (e) => { if (e.key === 'Escape') setSelected(null) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [])
 
   return (
     <div className="flex flex-col h-screen w-screen overflow-hidden bg-base-950 grid-bg relative select-none">
@@ -461,6 +476,7 @@ export function HomeViewV2() {
                     pillar={selectedPillar}
                     onClose={handleClose}
                     onLaunch={handleLaunch}
+                    isDark={state.isDark}
                   />
                 )}
               </div>
