@@ -268,9 +268,11 @@ export function ReleaseNotesView() {
           </button>
           <button
             onClick={() => setActivityOpen(true)}
-            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all hover:opacity-80"
-            style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)' }}
-            title="Activity Log"
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-all"
+            style={{ opacity: 0.15 }}
+            onMouseEnter={e => e.currentTarget.style.opacity = '0.5'}
+            onMouseLeave={e => e.currentTarget.style.opacity = '0.15'}
+            title=""
           >
             <Activity size={14} style={{ color: '#6366f1' }} />
           </button>
@@ -683,17 +685,11 @@ function ActivityLog() {
         const location = [row.city, row.country].filter(Boolean).join(', ') || null
         return (
           <div key={i} className="rounded-xl p-4 space-y-2.5" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-            {/* Top row: user + time */}
+            {/* Top row: IP + time */}
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
-                <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[12px] font-black" style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>
-                  {row.username ? row.username[0].toUpperCase() : '?'}
-                </div>
                 <div className="min-w-0">
-                  <div className="text-[13px] font-bold text-slate-800 truncate">
-                    {row.username ?? <span className="text-slate-400 font-normal text-[11px]">GP username not injected</span>}
-                  </div>
-                  <div className="text-[10px] font-mono text-slate-400">{row.ip ?? '—'}</div>
+                  <div className="text-[13px] font-bold font-mono text-slate-700">{row.ip ?? '—'}</div>
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -729,11 +725,6 @@ function ActivityLog() {
               {row.language && (
                 <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
                   🌐 {row.language}
-                </span>
-              )}
-              {row.screen_res && (
-                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
-                  🖥 {row.screen_res}
                 </span>
               )}
             </div>
