@@ -89,7 +89,7 @@ function MiniCard({ pillar, index, anySelected, onClick, isDark }) {
   const [hovered, setHovered] = useState(false)
 
   const cardBg = hovered
-    ? (isDark ? `rgba(255,255,255,0.09)` : pillar.accent + '14')
+    ? (isDark ? `rgba(255,255,255,0.09)` : pillar.accent + '0D')
     : (isDark ? `rgba(255,255,255,0.04)` : `rgba(255,255,255,0.82)`)
   const titleColor = isDark ? '#ffffff' : '#0f172a'
   const descColor = isDark ? 'rgba(148,163,184,0.85)' : 'rgba(51,65,85,0.85)'
