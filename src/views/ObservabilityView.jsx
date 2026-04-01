@@ -121,23 +121,23 @@ function AirsProbeCard({ probeState, probeResult, onRun }) {
   return (
     <div className="rounded-2xl border border-blue-500/20 bg-blue-500/[0.03] p-4 space-y-3">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Wifi size={14} className="text-blue-400" />
-          <div>
-            <span className="text-[12px] font-bold text-slate-300">Live AIRS Regional Latency Probe</span>
-            <p className="text-[10px] text-slate-500 mt-0.5">Measures pure network round-trip to each regional endpoint (HTTP GET, no credentials, no scan). Hover <span className="font-bold text-slate-400">?</span> on each region for details.</p>
-          </div>
-        </div>
+      <div className="flex items-center gap-4">
         <button
           onClick={onRun}
           disabled={state === 'running'}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0 ml-4"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
         >
           {state === 'running'
             ? <><Loader2 size={11} className="animate-spin" /> Probing all regions…</>
             : <><Wifi size={11} /> Run Probe</>}
         </button>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <Wifi size={14} className="text-blue-400 flex-shrink-0" />
+          <div>
+            <span className="text-[12px] font-bold text-slate-300">Live AIRS Regional Latency Probe</span>
+            <p className="text-[10px] text-slate-500 mt-0.5">Measures pure network round-trip to each regional endpoint (HTTP GET, no credentials, no scan). Hover <span className="font-bold text-slate-400">?</span> on each region for details.</p>
+          </div>
+        </div>
       </div>
 
       {/* Running state */}
