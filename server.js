@@ -763,7 +763,12 @@ const RN_CACHE = { data: null, fetchedAt: 0 }
 const RN_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
 function stripTags(html) {
-  return html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+  return html
+    .replace(/<[^>]+>/g, '')
+    .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(n))
+    .replace(/\s+/g, ' ').trim()
 }
 
 function parseReleaseNotes(html) {

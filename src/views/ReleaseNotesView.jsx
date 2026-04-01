@@ -99,34 +99,46 @@ function PillarSection({ pillar, index }) {
                       </span>
                       <div className="flex-1 h-px" style={{ background: `${pillar.color}15` }} />
                     </div>
-                    {/* Feature entries */}
-                    <div className="space-y-6">
+                    {/* Feature bubbles */}
+                    <div className="space-y-3">
                       {feats.map((f, i) => (
-                        <div key={i} className="flex gap-3">
-                          <div className="flex-shrink-0 pt-1.5">
-                            <div className="w-1.5 h-1.5 rounded-full" style={{ background: pillar.color }} />
+                        <div key={i} className="rounded-2xl p-4" style={{
+                          background: `${pillar.color}07`,
+                          border: `1px solid ${pillar.color}20`,
+                        }}>
+                          {/* Title */}
+                          <div className="flex items-start gap-2 mb-2">
+                            <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: pillar.color }} />
+                            <div className="text-[13px] font-bold text-slate-800 leading-snug">{f.title}</div>
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[14px] font-bold text-slate-800 leading-snug mb-1">{f.title}</div>
-                            {f.supportedFor && (
-                              <div className="text-[11px] text-slate-400 mb-2">
-                                <span className="font-semibold">Supported for:</span> {f.supportedFor}
-                              </div>
-                            )}
-                            {f.paragraphs?.map((p, pi) => (
-                              <p key={pi} className="text-[12px] text-slate-600 leading-relaxed mb-2">{p}</p>
-                            ))}
-                            {f.bullets?.length > 0 && (
-                              <ul className="mt-1 space-y-1">
-                                {f.bullets.map((b, bi) => (
-                                  <li key={bi} className="flex gap-2 text-[12px] text-slate-600 leading-relaxed">
-                                    <span className="flex-shrink-0 mt-1.5 w-1 h-1 rounded-full bg-slate-300" />
-                                    <span>{b}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            )}
-                          </div>
+
+                          {/* Supported for */}
+                          {f.supportedFor && (
+                            <div className="ml-4 mb-2 text-[11px] px-2 py-0.5 rounded-full w-fit" style={{ background: `${pillar.color}15`, color: pillar.color }}>
+                              {f.supportedFor}
+                            </div>
+                          )}
+
+                          {/* Paragraphs */}
+                          {f.paragraphs?.length > 0 && (
+                            <div className="ml-4 space-y-1.5">
+                              {f.paragraphs.map((p, pi) => (
+                                <p key={pi} className="text-[12px] text-slate-600 leading-relaxed">{p}</p>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Bullets */}
+                          {f.bullets?.length > 0 && (
+                            <ul className="ml-4 mt-2 space-y-1.5">
+                              {f.bullets.map((b, bi) => (
+                                <li key={bi} className="flex gap-2 text-[12px] text-slate-600 leading-relaxed">
+                                  <span className="flex-shrink-0 mt-1.5 w-1.5 h-1.5 rounded-full" style={{ background: `${pillar.color}60` }} />
+                                  <span>{b}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
                         </div>
                       ))}
                     </div>
