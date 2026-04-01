@@ -498,24 +498,25 @@ export function TelemetrySidebar({ telemetry }) {
   const totalMs = trace?.total_ms ?? 0
 
   return (
-    <div className="flex flex-col h-full overflow-hidden border-l border-white/10" style={{ background: '#0D0F16' }}>
+    <div className="flex flex-col h-full overflow-hidden border-l border-white/10 bg-base-900">
 
       {/* ── Header ── */}
       <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 flex-shrink-0">
         <Activity size={14} className={theme.primaryText} />
-        <span className="text-xs font-semibold text-slate-300">Prompt Telemetry</span>
+        <span className="text-xs font-semibold" style={{ color: '#cbd5e1' }}>Prompt Telemetry</span>
         {trace && (
           <motion.span
             key={trace.verdict}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className={`ml-auto flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border ${
+            className="ml-auto flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full border"
+            style={
               trace.verdict === 'BLOCKED'
-                ? 'bg-red-500/20 text-red-400 border-red-500/40'
+                ? { background: 'rgba(239,68,68,0.2)', color: '#f87171', borderColor: 'rgba(239,68,68,0.4)' }
                 : trace.verdict === 'DIRECT'
-                ? 'bg-slate-800 text-slate-500 border-slate-700'
-                : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-            }`}
+                ? { background: '#1e2231', color: '#94a3b8', borderColor: '#334155' }
+                : { background: 'rgba(52,211,153,0.2)', color: '#34d399', borderColor: 'rgba(52,211,153,0.4)' }
+            }
           >
             {trace.verdict === 'BLOCKED' ? <ShieldX size={10} /> : trace.verdict === 'DIRECT' ? <Zap size={10} /> : <ShieldCheck size={10} />}
             {trace.verdict}
