@@ -456,7 +456,7 @@ export function HomeViewV2() {
       </motion.div>
 
       {/* ── 3×2 Grid ── */}
-      <div className="relative z-10 px-8 pb-8">
+      <div className="relative z-10 px-8 pb-8 max-w-[1280px] mx-auto w-full">
         <div
           className="grid gap-4"
           style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}
