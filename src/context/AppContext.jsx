@@ -36,7 +36,12 @@ export function AppProvider({ children }) {
     fetch('/api/activity', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ view: state.activeView }),
+      body: JSON.stringify({
+        view: state.activeView,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        screen_res: `${window.screen.width}x${window.screen.height}`,
+        language: navigator.language,
+      }),
     }).catch(() => {})
   }, [state.activeView])
 

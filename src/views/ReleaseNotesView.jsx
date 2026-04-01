@@ -676,37 +676,70 @@ function ActivityLog() {
   )
 
   return (
-    <div className="p-4">
-      <div className="text-[11px] font-semibold text-indigo-500 mb-3 px-1">{logs.length} unique visitor{logs.length !== 1 ? 's' : ''}</div>
-      <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #e2e8f0' }}>
-        <table className="w-full text-[11px]">
-          <thead>
-            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              {['Last Seen', 'IP Address', 'Visits', 'Browser', 'OS'].map(h => (
-                <th key={h} className="px-3 py-2.5 text-left font-bold text-slate-400 uppercase tracking-wider text-[9px]">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {logs.map((row, i) => {
-              const { browser, os } = parseUA(row.user_agent)
-              return (
-                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-3 py-2.5 text-slate-500 whitespace-nowrap">{timeAgo(row.last_seen)}</td>
-                  <td className="px-3 py-2.5 font-mono font-bold text-slate-700">{row.ip ?? '—'}</td>
-                  <td className="px-3 py-2.5">
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>
-                      {row.visits} view{row.visits !== 1 ? 's' : ''}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2.5 text-slate-500">{browser}</td>
-                  <td className="px-3 py-2.5 text-slate-500">{os}</td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-      </div>
+    <div className="p-4 space-y-3">
+      <div className="text-[11px] font-semibold text-indigo-500 px-1">{logs.length} unique visitor{logs.length !== 1 ? 's' : ''}</div>
+      {logs.map((row, i) => {
+        const { browser, os } = parseUA(row.user_agent)
+        const location = [row.city, row.country].filter(Boolean).join(', ') || null
+        return (
+          <div key={i} className="rounded-xl p-4 space-y-2.5" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+            {/* Top row: user + time */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[12px] font-black" style={{ background: 'rgba(99,102,241,0.12)', color: '#6366f1' }}>
+                  {row.username ? row.username[0].toUpperCase() : '?'}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[13px] font-bold text-slate-800 truncate">
+                    {row.username ?? <span className="text-slate-400 font-normal text-[11px]">GP username not injected</span>}
+                  </div>
+                  <div className="text-[10px] font-mono text-slate-400">{row.ip ?? '—'}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold" style={{ background: 'rgba(99,102,241,0.1)', color: '#6366f1', border: '1px solid rgba(99,102,241,0.2)' }}>
+                  {row.visits} view{row.visits !== 1 ? 's' : ''}
+                </span>
+                <span className="text-[11px] text-slate-400">{timeAgo(row.last_seen)}</span>
+              </div>
+            </div>
+
+            {/* Meta pills */}
+            <div className="flex flex-wrap gap-1.5">
+              {location && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-blue-50 text-blue-600 border border-blue-100">
+                  📍 {location}
+                </span>
+              )}
+              {row.timezone && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                  🕐 {row.timezone}
+                </span>
+              )}
+              {browser !== 'Other' && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                  {browser}
+                </span>
+              )}
+              {os !== 'Other' && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                  {os}
+                </span>
+              )}
+              {row.language && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                  🌐 {row.language}
+                </span>
+              )}
+              {row.screen_res && (
+                <span className="flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200">
+                  🖥 {row.screen_res}
+                </span>
+              )}
+            </div>
+          </div>
+        )
+      })}
     </div>
   )
 }

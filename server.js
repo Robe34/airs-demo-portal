@@ -882,10 +882,42 @@ app.get('/api/release-notes', async (req, res) => {
 app.post('/api/activity', (req, res) => {
   const view = req.body?.view
   if (!view) return res.status(400).json({ error: 'view required' })
+
   const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() ?? req.socket.remoteAddress
   const user_agent = req.headers['user-agent'] ?? null
-  insertActivity({ view, ip, user_agent })
+
+  // GlobalProtect / Prisma Access HTTP Header Insertion
+  const username = req.headers['x-authenticated-user']
+    ?? req.headers['x-pan-user']
+    ?? req.headers['x-gp-user']
+    ?? req.headers['x-remote-user']
+    ?? null
+
+  // Browser metadata sent from frontend
+  const timezone   = req.body?.timezone ?? null
+  const screen_res = req.body?.screen_res ?? null
+  const language   = req.body?.language ?? null
+
+  // Respond immediately — GeoIP lookup is async background
   res.json({ ok: true })
+
+  // GeoIP via ip-api.com (free, no key, 45 req/min — fine for demo)
+  const isPrivate = !ip || /^(::1|127\.|10\.|172\.(1[6-9]|2\d|3[01])\.|192\.168\.)/.test(ip) || ip === '::1'
+  if (isPrivate) {
+    insertActivity({ view, ip, user_agent, username, country: null, city: null, region: null, timezone, screen_res, language })
+    return
+  }
+  fetch(`http://ip-api.com/json/${ip}?fields=country,regionName,city,status`, { signal: AbortSignal.timeout(4000) })
+    .then(r => r.json())
+    .then(geo => {
+      insertActivity({ view, ip, user_agent, username,
+        country: geo.status === 'success' ? geo.country : null,
+        city:    geo.status === 'success' ? geo.city : null,
+        region:  geo.status === 'success' ? geo.regionName : null,
+        timezone, screen_res, language,
+      })
+    })
+    .catch(() => insertActivity({ view, ip, user_agent, username, country: null, city: null, region: null, timezone, screen_res, language }))
 })
 
 app.get('/api/activity', (_req, res) => {

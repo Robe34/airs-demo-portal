@@ -50,9 +50,21 @@ function db() {
       ts TEXT NOT NULL,
       view TEXT NOT NULL,
       ip TEXT,
-      user_agent TEXT
+      user_agent TEXT,
+      username TEXT,
+      country TEXT,
+      city TEXT,
+      region TEXT,
+      timezone TEXT,
+      screen_res TEXT,
+      language TEXT
     );
   `)
+  // Migrate existing installs — add columns if missing
+  const cols = _db.prepare(`PRAGMA table_info(activity_log)`).all().map(c => c.name)
+  for (const col of [['username','TEXT'],['country','TEXT'],['city','TEXT'],['region','TEXT'],['timezone','TEXT'],['screen_res','TEXT'],['language','TEXT']]) {
+    if (!cols.includes(col[0])) _db.exec(`ALTER TABLE activity_log ADD COLUMN ${col[0]} ${col[1]}`)
+  }
   return _db
 }
 
@@ -117,10 +129,13 @@ export function deleteTrace(id) {
   d.prepare('DELETE FROM traces WHERE id = ?').run(id)
 }
 
-export function insertActivity({ view, ip, user_agent }) {
+export function insertActivity({ view, ip, user_agent, username, country, city, region, timezone, screen_res, language }) {
   db().prepare(
-    `INSERT INTO activity_log (ts, view, ip, user_agent) VALUES (?, ?, ?, ?)`
-  ).run(new Date().toISOString(), view, ip ?? null, user_agent ?? null)
+    `INSERT INTO activity_log (ts, view, ip, user_agent, username, country, city, region, timezone, screen_res, language)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  ).run(new Date().toISOString(), view, ip ?? null, user_agent ?? null,
+    username ?? null, country ?? null, city ?? null, region ?? null,
+    timezone ?? null, screen_res ?? null, language ?? null)
 }
 
 export function getActivity({ limit = 100 } = {}) {
@@ -129,7 +144,14 @@ export function getActivity({ limit = 100 } = {}) {
       ip,
       MAX(ts) as last_seen,
       COUNT(*) as visits,
-      MAX(user_agent) as user_agent
+      MAX(user_agent) as user_agent,
+      MAX(username) as username,
+      MAX(country) as country,
+      MAX(city) as city,
+      MAX(region) as region,
+      MAX(timezone) as timezone,
+      MAX(screen_res) as screen_res,
+      MAX(language) as language
     FROM activity_log
     GROUP BY ip
     ORDER BY last_seen DESC
