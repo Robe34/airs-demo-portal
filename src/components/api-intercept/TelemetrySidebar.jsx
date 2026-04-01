@@ -514,7 +514,7 @@ export function TelemetrySidebar({ telemetry }) {
               trace.verdict === 'BLOCKED'
                 ? { background: 'rgba(239,68,68,0.2)', color: '#f87171', borderColor: 'rgba(239,68,68,0.4)' }
                 : trace.verdict === 'DIRECT'
-                ? { background: '#1e2231', color: '#94a3b8', borderColor: '#334155' }
+                ? { background: 'rgba(148,163,184,0.12)', color: '#64748b', borderColor: 'rgba(148,163,184,0.3)' }
                 : { background: 'rgba(52,211,153,0.2)', color: '#34d399', borderColor: 'rgba(52,211,153,0.4)' }
             }
           >
