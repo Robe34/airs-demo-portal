@@ -319,11 +319,11 @@ export function ModelScanningView() {
             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all duration-300"
             style={
               scanState === 'scanning'
-                ? { background: '#334155', color: '#94a3b8', cursor: 'not-allowed' }
+                ? { background: 'rgba(100,116,139,0.2)', color: '#94a3b8', cursor: 'not-allowed' }
                 : scanState === 'complete' || scanState === 'error'
-                ? { background: '#334155', color: '#cbd5e1', border: '1px solid rgba(255,255,255,0.1)' }
+                ? { background: 'rgba(100,116,139,0.15)', color: '#64748b', border: '1px solid rgba(100,116,139,0.3)' }
                 : !scannerUp || !canScan
-                ? { background: '#1e293b', color: '#475569', cursor: 'not-allowed' }
+                ? { background: 'rgba(100,116,139,0.15)', color: '#94a3b8', cursor: 'not-allowed' }
                 : { background: '#3b82f6', color: '#ffffff' }
             }
             whileTap={{ scale: 0.97 }}
