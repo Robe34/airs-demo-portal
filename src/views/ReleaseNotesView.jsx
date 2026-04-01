@@ -22,7 +22,7 @@ function groupByDate(features) {
 }
 
 function PillarSection({ pillar, index }) {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   const groups = groupByDate(pillar.features)
 
   return (
