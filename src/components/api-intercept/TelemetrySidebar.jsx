@@ -385,13 +385,7 @@ function SbFlowNode({ span, totalMs, isLast }) {
               </span>
             )}
           </div>
-          {span.latency_ms > 0 && <span className={`text-[11px] font-mono font-bold flex-shrink-0 ${cfg.text}`}>{span.latency_ms.toLocaleString()}ms</span>}
         </div>
-        {barPct > 0 && (
-          <div className="h-1.5 rounded-full bg-black/[0.06] overflow-hidden mt-2.5">
-            <motion.div className={`h-full rounded-full ${cfg.bar} opacity-70`} initial={{ width: 0 }} animate={{ width: `${barPct}%` }} transition={{ duration: 0.4, ease: 'easeOut' }} />
-          </div>
-        )}
       </div>
     </div>
   )
@@ -575,10 +569,6 @@ export function TelemetrySidebar({ telemetry }) {
                   {trace.spans.map((span, i) => (
                     <SbFlowNode key={span.id ?? `${span.name}-${i}`} span={span} totalMs={totalMs} isLast={i === trace.spans.length - 1} />
                   ))}
-                  <div className="flex items-center justify-between text-[11px] pt-3 mt-1 border-t border-white/[0.08]">
-                    <span className="text-slate-400 font-bold">Total round-trip</span>
-                    <span className="font-mono font-bold text-slate-300">{totalMs.toLocaleString()}ms</span>
-                  </div>
                 </div>
               )}
             </div>
