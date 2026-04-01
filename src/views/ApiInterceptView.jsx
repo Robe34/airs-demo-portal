@@ -165,7 +165,7 @@ export function ApiInterceptView() {
 
       {/* Right: Telemetry — resizable */}
       <div
-        className="flex-shrink-0 overflow-hidden bg-base-900/30"
+        className="flex-shrink-0 overflow-hidden bg-base-900"
         style={{ width: sidebarWidth }}
       >
         <TelemetrySidebar telemetry={activeTelemetry} />
