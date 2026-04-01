@@ -457,17 +457,28 @@ export function HomeViewV2() {
         </p>
       </motion.div>
 
-      {/* ── 3×2 Grid ── */}
-      <div className="relative z-10 px-8 pb-8 max-w-[1280px] mx-auto w-full">
-        <div
-          className="grid gap-4"
-          style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}
-        >
-          {PILLARS.map((pillar, i) => (
+      {/* ── Grid: 4 core pillars + 2 misc below ── */}
+      <div className="relative z-10 px-8 pb-8 max-w-[1280px] mx-auto w-full space-y-4">
+        {/* Row 1: 4 core AIRS pillars */}
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
+          {PILLARS.slice(0, 4).map((pillar, i) => (
             <MiniCard
               key={pillar.id}
               pillar={pillar}
               index={i}
+              anySelected={!!selected}
+              onClick={() => handleSelect(pillar.id)}
+              isDark={state.isDark}
+            />
+          ))}
+        </div>
+        {/* Row 2: 2 misc pillars — centered, half-width each */}
+        <div className="grid gap-4 mx-auto" style={{ gridTemplateColumns: 'repeat(2, 1fr)', maxWidth: '66%' }}>
+          {PILLARS.slice(4).map((pillar, i) => (
+            <MiniCard
+              key={pillar.id}
+              pillar={pillar}
+              index={4 + i}
               anySelected={!!selected}
               onClick={() => handleSelect(pillar.id)}
               isDark={state.isDark}
