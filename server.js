@@ -762,38 +762,53 @@ const RN_PILLARS = [
 const RN_CACHE = { data: null, fetchedAt: 0 }
 const RN_TTL_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 
+function stripTags(html) {
+  return html.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+}
+
 function parseReleaseNotes(html) {
   const features = []
-  // Match concept sections: <div ... id="concept-..."> ... </div>
   const sectionRe = /<(?:div|section)[^>]+id="concept-[^"]*"[^>]*>([\s\S]*?)(?=<(?:div|section)[^>]+id="concept-|$)/gi
   let m
   while ((m = sectionRe.exec(html)) !== null) {
     const block = m[1]
+
     // Title: first h2 or h3
     const titleM = block.match(/<h[23][^>]*>([\s\S]*?)<\/h[23]>/i)
     if (!titleM) continue
-    const title = titleM[1].replace(/<[^>]+>/g, '').trim()
+    const title = stripTags(titleM[1])
     if (!title || title.length < 4) continue
 
-    // Date: look for month year pattern
+    // Date: month year pattern
     const dateM = block.match(/\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+20\d{2}\b/)
     const date = dateM ? dateM[0] : ''
 
-    // Description: first meaningful paragraph
-    const paraRe = /<(?:p|div)[^>]*class="[^"]*(?:p|body|shortdesc)[^"]*"[^>]*>([\s\S]*?)<\/(?:p|div)>/gi
-    let desc = ''
+    // "Supported for:" line
+    let supportedFor = ''
+    const supportM = block.match(/Supported\s+for\s*:?([\s\S]*?)(?=<\/(?:p|div|li)|<(?:p|div|li|ul))/i)
+    if (supportM) supportedFor = stripTags(supportM[1]).replace(/^[:\s]+/, '').trim()
+
+    // All paragraphs — collect full text blocks
+    const paragraphs = []
+    const paraRe = /<p[^>]*>([\s\S]*?)<\/p>/gi
     let pm
     while ((pm = paraRe.exec(block)) !== null) {
-      const txt = pm[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
-      if (txt.length > 30) { desc = txt; break }
-    }
-    // Fallback: any paragraph
-    if (!desc) {
-      const anyPara = block.match(/<p[^>]*>([\s\S]*?)<\/p>/i)
-      if (anyPara) desc = anyPara[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+      const txt = stripTags(pm[1])
+      if (txt.length > 20 && !txt.match(/^Supported\s+for/i)) paragraphs.push(txt)
     }
 
-    features.push({ title, date, desc: desc.slice(0, 400) })
+    // All list items
+    const bullets = []
+    const liRe = /<li[^>]*>([\s\S]*?)<\/li>/gi
+    let lm
+    while ((lm = liRe.exec(block)) !== null) {
+      const txt = stripTags(lm[1])
+      if (txt.length > 10 && !txt.match(/^Supported\s+for/i) && !txt.match(/^Prisma AIRS/i)) {
+        bullets.push(txt)
+      }
+    }
+
+    features.push({ title, date, supportedFor, paragraphs, bullets })
   }
   return features
 }
