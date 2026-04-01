@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bell, HelpCircle, ChevronRight, Sun, Moon } from 'lucide-react'
+import { Bell, HelpCircle, ChevronRight, Sun, Moon, ArrowLeft } from 'lucide-react'
 import { useAppContext } from '../../context/AppContext'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 import { PulsingDot } from '../shared/PulsingDot'
@@ -11,7 +11,8 @@ const VIEW_LABELS = {
   modelScanning: { label: 'Model Scanning',               sublabel: 'AI model vulnerability assessment',          text: 'text-blue-400' },
   redTeaming:    { label: 'Red Teaming',                  sublabel: 'Automated adversarial campaign runner',      text: 'text-orange-400' },
   claudeHooks:   { label: 'AI Code Assistant Protection', sublabel: 'Claude Code hooks integration guide',        text: 'text-purple-400' },
-  observability: { label: 'LLM Telemetry',                sublabel: 'Prompt history, metrics & pipeline traces',  text: 'text-teal-400' },
+  observability:    { label: 'LLM Telemetry',                sublabel: 'Prompt history, metrics & pipeline traces',  text: 'text-teal-400' },
+  developerCorner:  { label: 'Developer Corner',             sublabel: 'Integration guide & API reference',          text: 'text-indigo-400' },
 }
 
 export function TopBar() {
@@ -21,9 +22,15 @@ export function TopBar() {
 
   return (
     <header className="flex items-center h-16 px-6 border-b border-white/10 bg-base-900/60 backdrop-blur-md flex-shrink-0">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 flex-1">
-        <button onClick={() => dispatch({ type: 'SET_VIEW', payload: 'home' })} className="text-xs text-blue-400 hover:text-blue-300 hover:underline transition-colors cursor-pointer">SUDO AIRS Demo</button>
+      {/* Home + Breadcrumb */}
+      <div className="flex items-center gap-3 flex-1">
+        <button
+          onClick={() => dispatch({ type: 'SET_VIEW', payload: 'home' })}
+          className="flex items-center gap-1.5 text-[12px] font-semibold text-slate-400 hover:text-slate-200 transition-colors flex-shrink-0"
+        >
+          <ArrowLeft size={13} /> Home
+        </button>
+        <div className="w-px h-4 bg-white/10 flex-shrink-0" />
         <ChevronRight size={12} className="text-slate-700" />
         <AnimatePresence mode="wait">
           <motion.div
