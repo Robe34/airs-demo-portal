@@ -432,11 +432,13 @@ export function HomeViewV2() {
         </h1>
 
         <p className="max-w-xl text-sm text-slate-400 leading-relaxed">
-          An interactive security demonstration showing how{' '}
-          <span className="text-white font-medium">Prisma AIRS</span> protects AI applications
-          across six pillars — runtime API interception, model supply-chain scanning, automated
-          red teaming, Claude Code CLI protection, full LLM telemetry, and developer integration.{' '}
-          Toggle protection on and off to see the difference in real time.
+          An interactive demo portal showing how{' '}
+          <span className="text-white font-medium">Prisma AI Runtime Security (AIRS)</span> protects
+          AI applications from real-world attacks. Toggle protection on/off to see the difference
+          between a secured and vulnerable deployment — using live LLMs across{' '}
+          <span className="text-white font-medium">Google Vertex AI</span>,{' '}
+          <span className="text-white font-medium">AWS Bedrock</span>, and{' '}
+          <span className="text-white font-medium">Azure OpenAI</span>.
         </p>
 
         <p className="mt-2 text-[11px] text-slate-600">
