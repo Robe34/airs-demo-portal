@@ -332,14 +332,14 @@ export function ChatCenter({ messages, isLoading, onSendMessage, onClear, backen
   const [input, setInput] = useState('')
   const [translating, setTranslating] = useState(null)
 
-  const handleSendHebrew = async (text) => {
+  const handleTranslate = async (text, language) => {
     setTranslating(text)
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          message: `Translate the following text to Hebrew. Return ONLY the translated text, nothing else:\n\n${text}`,
+          message: `Translate the following text to ${language}. Return ONLY the translated text, nothing else:\n\n${text}`,
           airsEnabled: false,
           backend,
           modelId: model,
@@ -414,7 +414,7 @@ export function ChatCenter({ messages, isLoading, onSendMessage, onClear, backen
                   <ChatMessage
                     message={msg}
                     onResend={msg.role === 'user' ? () => onSendMessage(msg.content, backend, model) : undefined}
-                    onResendHebrew={msg.role === 'user' ? () => handleSendHebrew(msg.content) : undefined}
+                    onTranslate={msg.role === 'user' ? (text, lang) => handleTranslate(text, lang) : undefined}
                     isLoading={isLoading || translating === msg.content}
                     isTranslating={translating === msg.content}
                     onOpenTelemetry={onOpenTelemetry}
