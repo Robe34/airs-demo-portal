@@ -59,14 +59,23 @@ function SystemMessage({ message }) {
 
 // ─── User bubble (iMessage style) ─────────────────────────────────────────────
 const LANGUAGES = [
-  'English', 'Spanish', 'Russian', 'German', 'French',
-  'Japanese', 'Portuguese', 'Italian', 'Simplified Chinese', 'Hebrew',
+  { label: 'English',            flag: '🇺🇸' },
+  { label: 'Spanish',            flag: '🇪🇸' },
+  { label: 'Russian',            flag: '🇷🇺' },
+  { label: 'German',             flag: '🇩🇪' },
+  { label: 'French',             flag: '🇫🇷' },
+  { label: 'Japanese',           flag: '🇯🇵' },
+  { label: 'Portuguese',         flag: '🇧🇷' },
+  { label: 'Italian',            flag: '🇮🇹' },
+  { label: 'Simplified Chinese', flag: '🇨🇳' },
+  { label: 'Hebrew',             flag: '🇮🇱' },
 ]
 
 function UserMessage({ message, onResend, onTranslate, isLoading, isTranslating }) {
   const [showDropdown, setShowDropdown] = useState(false)
   const [openUpward, setOpenUpward] = useState(false)
   const btnRef = useRef(null)
+  const isLight = document.documentElement.classList.contains('light')
 
   useEffect(() => {
     if (!showDropdown) return
@@ -179,20 +188,39 @@ function UserMessage({ message, onResend, onTranslate, isLoading, isTranslating 
             </button>
             {showDropdown && (
               <div
-                className={`absolute right-0 z-50 w-44 bg-slate-900/95 border border-white/10 rounded-xl shadow-xl backdrop-blur-md overflow-hidden ${
+                className={`absolute right-0 z-50 w-44 rounded-xl shadow-xl overflow-hidden ${
                   openUpward ? 'bottom-full mb-1' : 'top-full mt-1'
                 }`}
+                style={isLight ? {
+                  background: '#ffffff',
+                  border: '1px solid rgba(0,48,135,0.14)',
+                  boxShadow: '0 8px 24px rgba(0,48,135,0.10)',
+                } : {
+                  background: 'rgba(15, 20, 35, 0.98)',
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  backdropFilter: 'blur(16px)',
+                }}
               >
-                {LANGUAGES.map((lang) => (
+                {LANGUAGES.map(({ label, flag }) => (
                   <button
-                    key={lang}
+                    key={label}
                     onClick={() => {
                       setShowDropdown(false)
-                      onTranslate(message.content, lang)
+                      onTranslate(message.content, label)
                     }}
-                    className="w-full text-left px-3 py-1.5 text-[11px] text-slate-300 hover:bg-white/8 hover:text-white transition-colors"
+                    className="w-full text-left px-3 py-1.5 text-[11px] transition-colors flex items-center gap-2"
+                    style={{ color: isLight ? '#1e293b' : '#e2e8f0' }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.background = isLight ? 'rgba(0,48,135,0.06)' : 'rgba(255,255,255,0.08)'
+                      e.currentTarget.style.color = isLight ? '#0f172a' : '#ffffff'
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.background = 'transparent'
+                      e.currentTarget.style.color = isLight ? '#1e293b' : '#e2e8f0'
+                    }}
                   >
-                    {lang}
+                    <span className="text-[13px]">{flag}</span>
+                    {label}
                   </button>
                 ))}
               </div>
