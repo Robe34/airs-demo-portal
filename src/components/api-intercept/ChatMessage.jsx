@@ -4,6 +4,7 @@ import { ShieldX, ShieldCheck, Info, RefreshCw, ArrowDownToLine, ArrowUpFromLine
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+// Used by AssistantMessage for Hebrew RTL display — do not remove
 function isHebrewText(str) {
   return /[\u0590-\u05FF]/.test(str)
 }
@@ -57,6 +58,11 @@ function SystemMessage({ message }) {
 }
 
 // ─── User bubble (iMessage style) ─────────────────────────────────────────────
+const LANGUAGES = [
+  'English', 'Spanish', 'Russian', 'German', 'French',
+  'Japanese', 'Portuguese', 'Italian', 'Simplified Chinese', 'Hebrew',
+]
+
 function UserMessage({ message, onResend, onTranslate, isLoading, isTranslating }) {
   const [showDropdown, setShowDropdown] = useState(false)
   const [openUpward, setOpenUpward] = useState(false)
@@ -65,7 +71,7 @@ function UserMessage({ message, onResend, onTranslate, isLoading, isTranslating 
   useEffect(() => {
     if (!showDropdown) return
     const handler = (e) => {
-      if (btnRef.current && !btnRef.current.closest('.translate-dropdown-root')?.contains(e.target)) {
+      if (btnRef.current && !btnRef.current.contains(e.target)) {
         setShowDropdown(false)
       }
     }
@@ -78,11 +84,6 @@ function UserMessage({ message, onResend, onTranslate, isLoading, isTranslating 
     : message.attackMeta?.severity === 'high'
     ? 'bg-orange-500/20 text-orange-400 border-orange-500/30'
     : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-
-  const LANGUAGES = [
-    'English', 'Spanish', 'Russian', 'German', 'French',
-    'Japanese', 'Portuguese', 'Italian', 'Simplified Chinese', 'Hebrew',
-  ]
 
   return (
     <motion.div
