@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Crosshair, ScanSearch, Swords, Terminal, BarChart2, Code2,
+  Crosshair, ScanSearch, Swords, Terminal, BarChart2, Code2, Network,
   ChevronRight, X, ArrowRight, Shield, Sun, Moon,
 } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
@@ -80,6 +80,18 @@ const PILLARS = [
     accent: '#06B6D4',
     glow: 'rgba(6,182,212,0.30)',
     dim: 'rgba(6,182,212,0.07)',
+  },
+  {
+    id: 'mcpSecurity',
+    icon: Network,
+    title: 'MCP Security',
+    tag: 'MCP Protection',
+    summary: 'Protect MCP tool calls with real-time AIRS two-stage scanning.',
+    description: 'Live MCP server demo with 5 real tools — file read, web fetch, code execution, and memory. Every tool invocation is scanned by Prisma AIRS before execution (Stage 1) and after (Stage 2), detecting prompt injection, malicious URLs, code injection, and data exfiltration in real time.',
+    highlights: ['10 OWASP MCP Top 10 attack scenarios', 'Tool poisoning & memory poisoning', 'Real two-stage AIRS tool_event scanning', 'Before/after protection comparison'],
+    accent: '#14b8a6',
+    glow: 'rgba(20,184,166,0.30)',
+    dim: 'rgba(20,184,166,0.07)',
   },
 ]
 
@@ -472,8 +484,8 @@ export function HomeViewV2() {
             />
           ))}
         </div>
-        {/* Row 2: 2 misc pillars — centered, half-width each */}
-        <div className="grid gap-4 mx-auto" style={{ gridTemplateColumns: 'repeat(2, 1fr)', maxWidth: '66%' }}>
+        {/* Row 2: 3 pillars — centered */}
+        <div className="grid gap-4 mx-auto" style={{ gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: '75%' }}>
           {PILLARS.slice(4).map((pillar, i) => (
             <MiniCard
               key={pillar.id}
