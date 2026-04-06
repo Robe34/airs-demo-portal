@@ -576,6 +576,31 @@ function PipelineFlow({ isProtected, invoking, result, selectedTool, cardBorder,
   )
 }
 
+// ── Copy button ───────────────────────────────────────────────────────────────
+function CopyButton({ text }) {
+  const [copied, setCopied] = React.useState(false)
+  const copy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+  return (
+    <button
+      onClick={copy}
+      style={{
+        marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 4,
+        padding: '3px 10px', borderRadius: 6, border: 'none', cursor: 'pointer',
+        background: copied ? 'rgba(52,211,153,0.15)' : 'rgba(6,182,212,0.12)',
+        color: copied ? '#34d399' : '#06b6d4',
+        fontSize: 10, fontWeight: 600, transition: 'all 0.15s',
+      }}
+    >
+      {copied ? '✓ Copied' : '⎘ Copy'}
+    </button>
+  )
+}
+
 // ── AIRS Payload Viewer ────────────────────────────────────────────────────────
 function JsonToken({ value }) {
   if (value === null) return <span style={{ color: '#94a3b8' }}>null</span>
@@ -663,7 +688,9 @@ function AirsPayloadViewer({ stage1, stage2, isLight, textMuted }) {
             style={{ overflow: 'hidden' }}
           >
             <div style={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {stages.map((s, i) => (
+              {stages.map((s, i) => {
+                const jsonText = JSON.stringify(s.body, null, 2)
+                return (
                 <div key={i} style={{ borderTop: `1px solid ${isLight ? 'rgba(0,48,135,0.08)' : 'rgba(255,255,255,0.06)'}` }}>
                   <div style={{
                     display: 'flex', alignItems: 'center', gap: 8,
@@ -671,19 +698,21 @@ function AirsPayloadViewer({ stage1, stage2, isLight, textMuted }) {
                     background: isLight ? 'rgba(0,48,135,0.02)' : 'rgba(6,182,212,0.04)',
                   }}>
                     <span style={{ fontSize: 9, fontWeight: 700, color: '#06b6d4', textTransform: 'uppercase', letterSpacing: '0.08em' }}>{s.label}</span>
-                    {s.latency && <span style={{ fontSize: 9, color: textMuted, marginLeft: 'auto' }}>⏱ {s.latency}ms</span>}
+                    {s.latency && <span style={{ fontSize: 9, color: textMuted }}>⏱ {s.latency}ms</span>}
+                    <CopyButton text={jsonText} />
                   </div>
                   <pre style={{
                     margin: 0, padding: '14px 18px',
                     fontSize: 11, fontFamily: 'monospace', lineHeight: 1.6,
-                    background: '#0d1117',
+                    background: isLight ? '#1e2030' : '#161b22',
                     overflowX: 'auto', maxHeight: 320, overflowY: 'auto',
                     color: '#94a3b8',
                   }}>
                     <JsonLines obj={s.body} />
                   </pre>
                 </div>
-              ))}
+                )
+              })}
             </div>
           </motion.div>
         )}
