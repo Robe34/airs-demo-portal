@@ -1394,12 +1394,34 @@ export function McpSecurityView() {
                   </div>
                 )}
 
-                {result.error && (
-                  <div style={{ padding: '10px 14px', borderRadius: 10, background: 'rgba(250,204,21,0.08)', border: '1px solid rgba(250,204,21,0.25)', display: 'flex', gap: 8 }}>
-                    <AlertTriangle size={14} color="#facc15" style={{ flexShrink: 0, marginTop: 1 }} />
-                    <span style={{ fontSize: 11, color: '#facc15' }}>{result.error}</span>
-                  </div>
-                )}
+                {result.error && (() => {
+                  const isSandboxBlock = result.error.includes('outside the sandbox') || result.error.includes('Access denied')
+                  return (
+                    <div style={{
+                      padding: '12px 16px', borderRadius: 10,
+                      background: isSandboxBlock ? 'rgba(251,191,36,0.08)' : 'rgba(250,204,21,0.08)',
+                      border: `1px solid ${isSandboxBlock ? 'rgba(251,191,36,0.30)' : 'rgba(250,204,21,0.25)'}`,
+                      display: 'flex', gap: 10, alignItems: 'flex-start',
+                    }}>
+                      <AlertTriangle size={16} color={isSandboxBlock ? '#fbbf24' : '#facc15'} style={{ flexShrink: 0, marginTop: 1 }} />
+                      <div>
+                        <div style={{ fontSize: 11, fontWeight: 700, color: '#fbbf24', marginBottom: 3 }}>
+                          {isSandboxBlock ? '⚠️ Sandbox Safety Net Triggered' : '⚠️ Tool Error'}
+                        </div>
+                        <div style={{ fontSize: 11, color: '#94a3b8', lineHeight: 1.5 }}>
+                          {isSandboxBlock
+                            ? `The MCP server's sandbox caught this attack before it could read system files. Note: ideally AIRS Stage 1 should have blocked this before the tool ran — check that your AIRS profile has prompt injection detection enabled.`
+                            : result.error}
+                        </div>
+                        {isSandboxBlock && (
+                          <div style={{ fontSize: 10, color: '#fbbf24', marginTop: 6, fontStyle: 'italic' }}>
+                            Raw error: {result.error}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })()}
 
                 {/* ── Attack explanation card ── */}
                 {activeScenario && EXPLANATIONS[activeScenario.id] && (
