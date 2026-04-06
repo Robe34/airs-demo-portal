@@ -467,6 +467,24 @@ function McpBriefingPage({ isLight, textMuted, textPrimary, cardBg, cardBorder }
         </div>
       </div>
 
+      {/* OWASP MCP Top 10 coverage */}
+      <div style={{ borderRadius: 14, border: `1px solid ${cardBorder}`, background: cardBg, padding: '16px 18px' }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
+          🎯 OWASP MCP Top 10 — Attack Coverage in This Demo
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
+          {owaspItems.map(o => (
+            <div key={o.id} style={{ padding: '10px 12px', borderRadius: 10, background: o.color + '08', border: `1px solid ${o.color}25` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                <span style={{ fontSize: 8, fontWeight: 800, padding: '1px 5px', borderRadius: 4, background: o.color + '20', color: o.color }}>{o.id}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: o.color }}>{o.label}</span>
+              </div>
+              <div style={{ fontSize: 9, color: isLight ? '#475569' : '#64748b', lineHeight: 1.4 }}>{o.desc}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Architecture diagram */}
       <div style={{ borderRadius: 14, border: `1px solid ${cardBorder}`, background: cardBg, padding: '18px 20px' }}>
         <div style={{ fontSize: 10, fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 16 }}>
@@ -572,24 +590,6 @@ function McpBriefingPage({ isLight, textMuted, textPrimary, cardBg, cardBorder }
               </div>
             ))}
           </div>
-        </div>
-      </div>
-
-      {/* OWASP MCP Top 10 coverage */}
-      <div style={{ borderRadius: 14, border: `1px solid ${cardBorder}`, background: cardBg, padding: '16px 18px' }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: 12 }}>
-          🎯 OWASP MCP Top 10 — Attack Coverage in This Demo
-        </div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
-          {owaspItems.map(o => (
-            <div key={o.id} style={{ padding: '10px 12px', borderRadius: 10, background: o.color + '08', border: `1px solid ${o.color}25` }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                <span style={{ fontSize: 8, fontWeight: 800, padding: '1px 5px', borderRadius: 4, background: o.color + '20', color: o.color }}>{o.id}</span>
-                <span style={{ fontSize: 10, fontWeight: 700, color: o.color }}>{o.label}</span>
-              </div>
-              <div style={{ fontSize: 9, color: isLight ? '#475569' : '#64748b', lineHeight: 1.4 }}>{o.desc}</div>
-            </div>
-          ))}
         </div>
       </div>
 
