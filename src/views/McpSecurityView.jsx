@@ -497,9 +497,9 @@ function AirsPayloadViewer({ stage1, stage2, isLight, textMuted }) {
                     {s.latency && <span style={{ fontSize: 9, color: textMuted, marginLeft: 'auto' }}>⏱ {s.latency}ms</span>}
                   </div>
                   <pre style={{
-                    margin: 0, padding: '12px 16px',
+                    margin: 0, padding: '14px 18px',
                     fontSize: 11, fontFamily: 'monospace', lineHeight: 1.6,
-                    background: isLight ? '#f8fafc' : 'rgba(0,0,0,0.35)',
+                    background: '#0d1117',
                     overflowX: 'auto', maxHeight: 320, overflowY: 'auto',
                     color: '#94a3b8',
                   }}>
