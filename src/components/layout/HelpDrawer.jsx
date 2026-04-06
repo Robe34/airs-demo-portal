@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { X, Crosshair, ScanSearch, Swords, Terminal, BarChart2, Code2, Network, ShieldCheck, ShieldOff, Zap, Eye, MessageSquare } from 'lucide-react'
 import { useAppContext } from '../../context/AppContext'
 
+
 const VIEWS = [
   { id: 'apiIntercept',    icon: Crosshair,  label: 'API Intercept',                desc: 'Send real attack payloads and watch AIRS intercept them live.',        color: '#EF4444' },
   { id: 'modelScanning',   icon: ScanSearch, label: 'Model Scanning',               desc: 'Scan AI model files for embedded malware and vulnerabilities.',        color: '#3B82F6' },
@@ -21,8 +22,8 @@ const TIPS = [
 ]
 
 export function HelpDrawer({ open, onClose }) {
-  const { dispatch } = useAppContext()
-  const isLight = document.documentElement.classList.contains('light')
+  const { dispatch, state } = useAppContext()
+  const isLight = !state.isDark
 
   useEffect(() => {
     if (!open) return

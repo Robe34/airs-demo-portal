@@ -817,7 +817,15 @@ function ReferenceSection() {
 
 export function DeveloperCornerView() {
   const [activeSection, setActiveSection] = useState('quickstart')
-  const isLight = document.documentElement.classList.contains('light')
+  const [isDark, setIsDark] = useState(!document.documentElement.classList.contains('light'))
+  useEffect(() => {
+    const obs = new MutationObserver(() => {
+      setIsDark(!document.documentElement.classList.contains('light'))
+    })
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => obs.disconnect()
+  }, [])
+  const isLight = !isDark
   const bg = isLight ? '#ffffff' : '#0d1117'
   const bgSide = isLight ? '#f8fafc' : '#0a0e18'
   const border = isLight ? '#e2e8f0' : 'rgba(255,255,255,0.08)'

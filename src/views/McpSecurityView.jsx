@@ -1089,7 +1089,7 @@ export function McpSecurityView() {
     setResult(null)
   }
 
-  const isLight = document.documentElement.classList.contains('light')
+  const isLight = !state.isDark
   const cardBg = isLight ? '#ffffff' : 'rgba(255,255,255,0.05)'
   const cardBorder = isLight ? 'rgba(0,48,135,0.10)' : 'rgba(255,255,255,0.10)'
   const textPrimary = isLight ? '#0f172a' : '#e2e8f0'
