@@ -567,7 +567,6 @@ function PipelineFlow({ isProtected, invoking, result, selectedTool, cardBorder,
           )
         })}
       </div>
-      </div>
       {!isProtected && (
         <span style={{ fontSize: 8, color: '#ef4444', fontWeight: 600, flexShrink: 0, whiteSpace: 'nowrap' }}>
           ⚠ OFF
