@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  Crosshair, ScanSearch, Swords, Terminal, BarChart2, Code2, Network,
+  Crosshair, ScanSearch, Swords, Terminal, BarChart2, Code2, Network, Database,
   ChevronRight, X, ArrowRight, Shield, Sun, Moon,
 } from 'lucide-react'
 import { useAppContext } from '../context/AppContext'
@@ -92,6 +92,18 @@ const PILLARS = [
     accent: '#2dd4bf',
     glow: 'rgba(45,212,191,0.32)',
     dim: 'rgba(45,212,191,0.08)',
+  },
+  {
+    id: 'ragSecurity',
+    icon: Database,
+    title: 'RAG Security',
+    tag: 'Retrieval Protection',
+    summary: 'Protect RAG pipelines from indirect injection, poisoned docs, and data leakage.',
+    description: 'Simulate a full Retrieval-Augmented Generation pipeline with a mock vector database. Prisma AIRS intercepts the augmented prompt upstream (before the LLM) and the response downstream (before the user) — catching indirect prompt injection hidden in retrieved documents and PII leaking in LLM output.',
+    highlights: ['Indirect prompt injection detection', 'Poisoned document retrieval simulation', 'PII/DLP downstream blocking', 'Real Prisma AIRS upstream + downstream scans'],
+    accent: '#f59e0b',
+    glow: 'rgba(245,158,11,0.32)',
+    dim: 'rgba(245,158,11,0.08)',
   },
 ]
 
@@ -484,8 +496,8 @@ export function HomeViewV2() {
             />
           ))}
         </div>
-        {/* Row 2: 3 pillars — centered */}
-        <div className="grid gap-4 mx-auto" style={{ gridTemplateColumns: 'repeat(3, 1fr)', maxWidth: '75%' }}>
+        {/* Row 2: 4 pillars */}
+        <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(4, 1fr)' }}>
           {PILLARS.slice(4).map((pillar, i) => (
             <MiniCard
               key={pillar.id}

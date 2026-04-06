@@ -17,5 +17,6 @@
     "username": "admin",
     "password": "Pr0d@Admin2024!",
     "mfa_backup_code": "8675-3090-1122"
-  }
+  },
+  "_note": "DEMO DATA ONLY — all values are synthetic and intentionally structured to trigger AIRS DLP detection for demonstration purposes"
 }

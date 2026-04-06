@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Crosshair, ScanSearch, Swords, Terminal, BarChart2, Code2, Network, ShieldCheck, ShieldOff, Zap, Eye, MessageSquare } from 'lucide-react'
+import { X, Crosshair, ScanSearch, Swords, Terminal, BarChart2, Code2, Network, Database, ShieldCheck, ShieldOff, Zap, Eye, MessageSquare } from 'lucide-react'
 import { useAppContext } from '../../context/AppContext'
 
 
@@ -12,6 +12,7 @@ const VIEWS = [
   { id: 'observability',   icon: BarChart2,  label: 'LLM Telemetry',                desc: 'Browse prompt history, latency metrics, and detection breakdowns.',    color: '#10B981' },
   { id: 'developerCorner', icon: Code2,      label: 'Developer Corner',             desc: 'Python SDK, REST API reference, and live integration code samples.',   color: '#06B6D4' },
   { id: 'mcpSecurity',     icon: Network,    label: 'MCP Security',                 desc: 'Live MCP tool demo with real AIRS two-stage scanning — 10 OWASP attack scenarios.',  color: '#06B6D4' },
+  { id: 'ragSecurity',     icon: Database,   label: 'RAG Security',                 desc: 'See how AIRS protects RAG pipelines from indirect injection, data poisoning, and PII leakage.', color: '#F59E0B' },
 ]
 
 const TIPS = [
@@ -19,6 +20,7 @@ const TIPS = [
   { icon: Zap,           text: 'In API Intercept, click any attack payload from the library to auto-inject it into the chat.' },
   { icon: Eye,           text: 'Click "Prompt Telemetry" on any response to see the full AIRS pipeline trace and scan details.' },
   { icon: Network,       text: 'In MCP Security, try attack scenarios with protection OFF first, then ON — to show the before/after story.' },
+  { icon: Database,      text: 'In RAG Security, run the "Poisoned Doc" scenario to see indirect prompt injection caught upstream before the LLM ever sees it.' },
 ]
 
 export function HelpDrawer({ open, onClose }) {

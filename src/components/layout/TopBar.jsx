@@ -15,6 +15,7 @@ const VIEW_LABELS = {
   observability:   { label: 'LLM Telemetry',                sublabel: 'Prompt history, metrics & pipeline traces',  text: 'text-teal-400',   color: '#10B981' },
   developerCorner: { label: 'Developer Corner',             sublabel: 'Integration guide & API reference',          text: 'text-indigo-400', color: '#06B6D4' },
   mcpSecurity:     { label: 'MCP Security',                 sublabel: 'Live MCP tool protection with Prisma AIRS',  text: 'text-cyan-400',   color: '#06B6D4' },
+  ragSecurity:     { label: 'RAG Security',                 sublabel: 'Retrieval-Augmented Generation pipeline protection', text: 'text-amber-400', color: '#F59E0B' },
 }
 
 export function TopBar() {

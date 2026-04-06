@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Crosshair, ScanSearch, Swords, Terminal, Settings, Activity, ExternalLink, BarChart2, Code2, Network } from 'lucide-react'
+import { Crosshair, ScanSearch, Swords, Terminal, Settings, Activity, ExternalLink, BarChart2, Code2, Network, Database } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Logo } from '../sidebar/Logo'
 import { ProtectionToggle } from '../sidebar/ProtectionToggle'
@@ -56,6 +56,13 @@ const NAV_ITEMS = [
     sublabel: 'Live MCP tool protection demo',
     icon: Network,
     color: { text: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', bar: 'bg-cyan-400' },
+  },
+  {
+    id: 'ragSecurity',
+    label: 'RAG Security',
+    sublabel: 'Retrieval pipeline protection',
+    icon: Database,
+    color: { text: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/30', bar: 'bg-amber-400' },
   },
 ]
 

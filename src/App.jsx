@@ -11,6 +11,7 @@ import { ObservabilityView } from './views/ObservabilityView'
 import { DeveloperCornerView } from './views/DeveloperCornerView'
 import { ReleaseNotesView } from './views/ReleaseNotesView'
 import { McpSecurityView } from './views/McpSecurityView'
+import { RagSecurityView } from './views/RagSecurityView'
 
 function AppContent() {
   const { state } = useAppContext()
@@ -32,6 +33,7 @@ function AppContent() {
       case 'observability':     return <ObservabilityView />
       case 'developerCorner':  return <DeveloperCornerView />
       case 'mcpSecurity':      return <McpSecurityView />
+      case 'ragSecurity':      return <RagSecurityView />
       default:                 return <ApiInterceptView />
     }
   }
