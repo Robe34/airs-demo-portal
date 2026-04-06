@@ -399,6 +399,182 @@ function ScanStageCard({ stage, label, data, pending, skipped }) {
   )
 }
 
+// ── Pipeline Flow header ───────────────────────────────────────────────────────
+function PipelineFlow({ isProtected, invoking, result, selectedTool, cardBorder, textMuted, isLight }) {
+  // Derive per-node state from result
+  const s1 = result?.stage1
+  const s2 = result?.stage2
+  const blocked1 = result?.blocked && result?.blockStage === 1
+  const blocked2 = result?.blocked && result?.blockStage === 2
+  const toolRan = result && !result.error && (result.toolResult || blocked2)
+
+  const nodeState = (key) => {
+    if (invoking) return 'running'
+    if (!result) return 'idle'
+    switch (key) {
+      case 'agent': return 'done'
+      case 'stage1':
+        if (!isProtected) return 'bypassed'
+        if (!s1) return 'idle'
+        return s1.action === 'block' ? 'blocked' : 'allowed'
+      case 'tool':
+        if (blocked1) return 'blocked'
+        return toolRan ? 'done' : 'idle'
+      case 'stage2':
+        if (!isProtected) return 'bypassed'
+        if (blocked1) return 'skipped'
+        if (!s2) return 'idle'
+        return s2.action === 'block' ? 'blocked' : 'allowed'
+      case 'response':
+        if (result?.blocked) return 'blocked'
+        if (result?.error) return 'error'
+        return result?.toolResult ? 'done' : 'idle'
+      default: return 'idle'
+    }
+  }
+
+  const stateStyle = (state, baseColor) => {
+    switch (state) {
+      case 'running':  return { bg: 'rgba(250,204,21,0.15)', border: 'rgba(250,204,21,0.50)', color: '#fbbf24', glow: '0 0 12px rgba(250,204,21,0.3)' }
+      case 'allowed':  return { bg: 'rgba(52,211,153,0.15)', border: 'rgba(52,211,153,0.50)', color: '#34d399', glow: '0 0 12px rgba(52,211,153,0.25)' }
+      case 'done':     return { bg: 'rgba(52,211,153,0.10)', border: 'rgba(52,211,153,0.35)', color: '#34d399', glow: 'none' }
+      case 'blocked':  return { bg: 'rgba(239,68,68,0.15)',  border: 'rgba(239,68,68,0.50)',  color: '#ef4444', glow: '0 0 12px rgba(239,68,68,0.3)' }
+      case 'skipped':  return { bg: 'rgba(100,116,139,0.08)', border: 'rgba(100,116,139,0.20)', color: '#64748b', glow: 'none' }
+      case 'bypassed': return { bg: 'rgba(71,85,105,0.08)',  border: 'rgba(71,85,105,0.20)',  color: '#475569', glow: 'none' }
+      case 'error':    return { bg: 'rgba(250,204,21,0.10)', border: 'rgba(250,204,21,0.35)', color: '#fbbf24', glow: 'none' }
+      default:         return { bg: baseColor + '10', border: baseColor + '25', color: baseColor, glow: 'none' }
+    }
+  }
+
+  const stateLabel = (state) => {
+    switch (state) {
+      case 'running':  return 'scanning…'
+      case 'allowed':  return 'allowed ✓'
+      case 'done':     return 'complete ✓'
+      case 'blocked':  return 'BLOCKED 🚫'
+      case 'skipped':  return 'skipped'
+      case 'bypassed': return 'bypassed'
+      case 'error':    return 'error'
+      default:         return 'waiting'
+    }
+  }
+
+  const nodes = [
+    { key: 'agent',  label: 'Agent',       sub: 'Sends request',       icon: Terminal,    baseColor: '#94a3b8' },
+    { key: 'stage1', label: 'AIRS Stage 1', sub: 'Pre-tool scan',       icon: ShieldCheck, baseColor: '#06b6d4' },
+    { key: 'tool',   label: selectedTool.label, sub: selectedTool.desc.slice(0, 28) + '…', icon: selectedTool.icon, baseColor: selectedTool.color },
+    { key: 'stage2', label: 'AIRS Stage 2', sub: 'Post-tool scan',      icon: ShieldCheck, baseColor: '#06b6d4' },
+    { key: 'response', label: 'Response',   sub: 'Returned to agent',   icon: CheckCircle2, baseColor: '#94a3b8' },
+  ]
+
+  return (
+    <div style={{
+      padding: '16px 24px', borderBottom: `1px solid ${cardBorder}`, flexShrink: 0,
+      background: isLight ? 'rgba(0,48,135,0.02)' : 'rgba(6,182,212,0.03)',
+    }}>
+      <div style={{ fontSize: 9, fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.14em', marginBottom: 14, textAlign: 'center' }}>
+        MCP Security Pipeline — Real-time
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0 }}>
+        {nodes.map((node, i) => {
+          const state = nodeState(node.key)
+          const st = stateStyle(state, node.baseColor)
+          const isAirs = node.key === 'stage1' || node.key === 'stage2'
+          return (
+            <React.Fragment key={node.key}>
+              <motion.div
+                animate={{ boxShadow: state === 'running' ? ['0 0 0px rgba(250,204,21,0)', '0 0 16px rgba(250,204,21,0.5)', '0 0 0px rgba(250,204,21,0)'] : st.glow }}
+                transition={{ duration: 1.2, repeat: state === 'running' ? Infinity : 0 }}
+                style={{
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                  opacity: state === 'bypassed' || state === 'skipped' ? 0.35 : 1,
+                  minWidth: 80,
+                }}
+              >
+                {/* Icon box */}
+                <motion.div
+                  animate={state === 'running' ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+                  transition={{ duration: 0.8, repeat: state === 'running' ? Infinity : 0 }}
+                  style={{
+                    width: 52, height: 52, borderRadius: 14,
+                    background: st.bg,
+                    border: `2px solid ${st.border}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    position: 'relative',
+                  }}
+                >
+                  <node.icon size={22} color={st.color} strokeWidth={isAirs ? 2.5 : 2} />
+                  {/* AIRS shield glow ring when active */}
+                  {isAirs && state === 'allowed' && (
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      style={{
+                        position: 'absolute', inset: -4, borderRadius: 17,
+                        border: '1px solid rgba(52,211,153,0.4)',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  )}
+                  {/* Blocked X badge */}
+                  {state === 'blocked' && (
+                    <motion.div
+                      initial={{ scale: 0 }} animate={{ scale: 1 }}
+                      style={{
+                        position: 'absolute', top: -6, right: -6,
+                        width: 16, height: 16, borderRadius: '50%',
+                        background: '#ef4444', border: '2px solid #0d1117',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 9, fontWeight: 900, color: '#fff',
+                      }}
+                    >✕</motion.div>
+                  )}
+                  {/* Done check badge */}
+                  {(state === 'done' || state === 'allowed') && !isAirs && (
+                    <motion.div
+                      initial={{ scale: 0 }} animate={{ scale: 1 }}
+                      style={{
+                        position: 'absolute', top: -6, right: -6,
+                        width: 16, height: 16, borderRadius: '50%',
+                        background: '#34d399', border: '2px solid #0d1117',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: 9, fontWeight: 900, color: '#0d1117',
+                      }}
+                    >✓</motion.div>
+                  )}
+                </motion.div>
+                {/* Labels */}
+                <div style={{ textAlign: 'center' }}>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: st.color, lineHeight: 1.2 }}>{node.label}</div>
+                  <div style={{ fontSize: 8, color: textMuted, marginTop: 2, maxWidth: 80, lineHeight: 1.3 }}>
+                    {stateLabel(state) !== 'waiting' ? stateLabel(state) : node.sub}
+                  </div>
+                </div>
+              </motion.div>
+              {/* Arrow connector */}
+              {i < nodes.length - 1 && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0 6px', marginBottom: 20 }}>
+                  <motion.div
+                    animate={{ opacity: state === 'running' ? [0.3, 1, 0.3] : 1 }}
+                    transition={{ duration: 0.8, repeat: state === 'running' ? Infinity : 0 }}
+                  >
+                    <ArrowRight size={14} color={state === 'blocked' ? '#ef4444' : isProtected ? '#34d399' : '#475569'} style={{ opacity: isProtected ? 0.6 : 0.25 }} />
+                  </motion.div>
+                </div>
+              )}
+            </React.Fragment>
+          )
+        })}
+      </div>
+      {!isProtected && (
+        <div style={{ textAlign: 'center', marginTop: 8, fontSize: 9, color: '#ef4444', fontWeight: 600 }}>
+          ⚠ Protection OFF — AIRS Stage 1 & Stage 2 bypassed
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── AIRS Payload Viewer ────────────────────────────────────────────────────────
 function JsonToken({ value }) {
   if (value === null) return <span style={{ color: '#94a3b8' }}>null</span>
@@ -1122,46 +1298,16 @@ export function McpSecurityView() {
       {/* ── CENTER: Pipeline + result ─────────────────────────────────────────── */}
       <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
 
-        {/* Pipeline header */}
-        <div style={{
-          padding: '14px 20px', borderBottom: `1px solid ${cardBorder}`, flexShrink: 0,
-          display: 'flex', alignItems: 'center', gap: 8,
-        }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: textMuted, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-            MCP Security Pipeline
-          </span>
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
-            {[
-              { label: 'Agent', icon: Terminal, color: '#94a3b8', bypassed: false },
-              null,
-              { label: 'AIRS Stage 1', icon: isProtected ? ShieldCheck : ShieldX, color: isProtected ? '#34d399' : '#475569', sub: 'Pre-Tool Scan', bypassed: !isProtected },
-              null,
-              { label: 'MCP Tool', icon: Network, color: selectedTool.color, bypassed: false },
-              null,
-              { label: 'AIRS Stage 2', icon: isProtected ? ShieldCheck : ShieldX, color: isProtected ? '#34d399' : '#475569', sub: 'Post-Tool Scan', bypassed: !isProtected },
-              null,
-              { label: 'Response', icon: CheckCircle2, color: '#94a3b8', bypassed: false },
-            ].map((node, i) => node === null ? (
-              <ArrowRight key={i} size={12} color={isProtected ? '#34d399' : '#475569'} style={{ opacity: isProtected ? 0.4 : 0.2 }} />
-            ) : (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, opacity: node.bypassed ? 0.35 : 1 }}>
-                <div style={{
-                  width: 28, height: 28, borderRadius: 8,
-                  background: node.color + '18', border: `1px solid ${node.color}35`,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  position: 'relative',
-                }}>
-                  <node.icon size={12} color={node.color} />
-                </div>
-                <span style={{ fontSize: 8, color: node.color, fontWeight: 600, textAlign: 'center', maxWidth: 56, lineHeight: 1.2 }}>{node.label}</span>
-                {node.sub && <span style={{ fontSize: 7, color: node.bypassed ? '#475569' : textMuted, textAlign: 'center' }}>{node.bypassed ? 'BYPASSED' : node.sub}</span>}
-              </div>
-            ))}
-          </div>
-          {!isProtected && (
-            <span style={{ fontSize: 9, color: '#ef4444', fontWeight: 600 }}>⚠ Protection OFF — AIRS bypassed</span>
-          )}
-        </div>
+        {/* Pipeline header — real-time flow */}
+        <PipelineFlow
+          isProtected={isProtected}
+          invoking={invoking}
+          result={result}
+          selectedTool={selectedTool}
+          cardBorder={cardBorder}
+          textMuted={textMuted}
+          isLight={isLight}
+        />
 
         {/* Result area */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 14 }}>
