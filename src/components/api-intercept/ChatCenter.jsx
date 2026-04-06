@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Loader2, MessageSquare, Send, RotateCcw, Plus, ShieldCheck, Cpu, User, AlertTriangle, CheckCircle2, ShieldX, Zap, Lock } from 'lucide-react'
 import { ChatMessage } from './ChatMessage'
 import { useProtectionTheme } from '../../hooks/useProtectionTheme'
+import { useAppContext } from '../../context/AppContext'
 
 // ─── Animated pipeline node ───────────────────────────────────────────────────
 function PipelineNode({ id, label, sublabel, icon: Icon, color, glowColor, activeNode, blockedAt }) {
@@ -335,6 +336,8 @@ const staggerContainer = {
 
 export function ChatCenter({ messages, isLoading, onSendMessage, onClear, backend, model, onOpenTelemetry }) {
   const theme = useProtectionTheme()
+  const { state } = useAppContext()
+  const isDark = state.isDark !== false
   const hasConversation = messages.some(m => m.role === 'user' || m.role === 'assistant')
   const endRef = useRef(null)
   const inputRef = useRef(null)
@@ -386,9 +389,12 @@ export function ChatCenter({ messages, isLoading, onSendMessage, onClear, backen
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 flex-shrink-0">
+      <div
+        className="flex items-center gap-2 px-4 py-3 flex-shrink-0"
+        style={{ borderBottom: isDark ? '1px solid rgba(255,255,255,0.08)' : '1px solid rgba(0,48,135,0.10)' }}
+      >
         <MessageSquare size={14} className={theme.primaryText} />
-        <span className="text-xs font-semibold text-slate-300">Intercept Console</span>
+        <span className="text-xs font-semibold" style={{ color: isDark ? '#cbd5e1' : '#334155' }}>Intercept Console</span>
         <div className="ml-auto flex items-center gap-2">
           {hasConversation && (
             <button

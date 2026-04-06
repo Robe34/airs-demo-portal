@@ -968,6 +968,78 @@ app.post('/api/rag/query', async (req, res) => {
   }
 })
 
+// ─── POST /api/cot — LLM-generated Chain of Thought ──────────────────────────
+// Calls the LLM with a reasoning system prompt so it narrates what it "sees"
+// in the prompt — what tools it would invoke, what risks it identifies, etc.
+// Intentionally separate from /api/chat so it never goes through AIRS scanning.
+app.post('/api/cot', async (req, res) => {
+  const { prompt, backend = 'vertex', modelId, attackMeta, verdict, airsBlocked, threats } = req.body
+  if (!prompt) return res.status(400).json({ error: 'prompt is required' })
+
+  const airsContext = airsBlocked
+    ? `AIRS Protection was ENABLED. Prisma AIRS scanned this prompt BEFORE it reached you and BLOCKED it. You never actually processed this request — AIRS intercepted it first. Detected threats: ${(threats ?? []).join(', ') || 'malicious content'}.`
+    : verdict === 'ALLOWED'
+    ? `AIRS Protection was ENABLED. Prisma AIRS scanned this prompt and ALLOWED it through as clean/benign. You received and processed it normally.`
+    : `AIRS Protection was DISABLED (unprotected mode). No scanning occurred. You received and processed this prompt directly with no security layer.`
+
+  const systemPrompt = `You are an AI agent with access to MCP (Model Context Protocol) tools: read_file, web_fetch, execute_code, get_memory, set_memory. Reason out loud exactly as a real LLM agent thinks — be specific, technical, and educational.
+
+IMPORTANT CONTEXT: ${airsContext}
+
+Your reasoning MUST reflect this reality:
+${airsBlocked
+  ? `- You were BLOCKED by AIRS before you could act. Narrate in past-conditional tense: "I would have called...", "This would have resulted in..."
+- Explain what you WOULD have done with this prompt if unprotected
+- Explain exactly why AIRS was right to block it — what attack this is, what damage it would cause
+- This is the key demo insight: show the danger that AIRS prevented`
+  : verdict === 'ALLOWED'
+  ? `- AIRS cleared this as safe, so you processed it normally
+- Explain your reasoning and what tools (if any) you used or considered
+- Confirm why this prompt was benign`
+  : `- No AIRS protection — you processed this directly
+- Show your full reasoning: what you see, what tools you would call, what risks exist
+- This is the "unprotected" scenario — be candid about risks`}
+
+Write in first-person ("I see...", "I would have called...", "I notice..."). Use ## markdown headers for each section. Keep it under 320 words. Sections to cover: Understanding the Request, Risk/Intent Analysis, MCP Tool Consideration (with exact tool name and parameters), ${airsBlocked ? 'What AIRS Prevented' : 'Tool Execution and Outcome'}, Final Decision.`
+
+  const userMsg = `User prompt:\n\n"${prompt}"\n\n${attackMeta ? `Attack type: ${attackMeta.label} · technique: ${attackMeta.technique} · severity: ${attackMeta.severity}` : ''}`
+
+  // Use streaming response so the UI can show text as it arrives
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+  res.setHeader('Transfer-Encoding', 'chunked')
+  res.setHeader('X-Accel-Buffering', 'no')
+
+  try {
+    // Vertex AI streaming — must use { contents: [...] } object form
+    if (backend === 'vertex') {
+      const resolvedModelId = modelId || process.env.VERTEX_MODEL || 'gemini-2.0-flash-001'
+      const genModel = vertexAI.getGenerativeModel({ model: resolvedModelId })
+      const streamResult = await genModel.generateContentStream({
+        contents: [{ role: 'user', parts: [{ text: systemPrompt + '\n\n' + userMsg }] }],
+      })
+      for await (const chunk of streamResult.stream) {
+        const text = chunk.candidates?.[0]?.content?.parts?.map(p => p.text).join('') ?? ''
+        if (text) res.write(text)
+      }
+      res.end()
+      return
+    }
+
+    // Bedrock / fallback — non-streaming, buffer and send
+    const resolvedModelId = modelId || process.env.BEDROCK_MODEL_ID || 'anthropic.claude-3-haiku-20240307-v1:0'
+    const fullPrompt = systemPrompt + '\n\n' + userMsg
+    const r = backend === 'bedrock'
+      ? await callBedrock(fullPrompt, resolvedModelId)
+      : await callVertexAI(fullPrompt, resolvedModelId)
+    res.write(r.text)
+    res.end()
+  } catch (err) {
+    console.error('[CoT] Error:', err.message)
+    res.write(`[CoT generation failed: ${err.message}]`)
+    res.end()
+  }
+})
+
 // ─── GET /api/health ─────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
   res.json({

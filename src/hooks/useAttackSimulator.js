@@ -101,10 +101,106 @@ export function useAttackSimulator() {
     }
   }, [isProtected])
 
-  // Called from attack library
+  // MCP attacks route through /api/mcp/invoke → real MCP server + real AIRS two-stage scan
+  const sendMcpAttack = useCallback(async (attack, backend, modelId) => {
+    const attackMeta = { label: attack.label, severity: attack.severity, technique: attack.technique }
+    const userMsg = {
+      id: `msg-${Date.now()}-user`,
+      role: 'user',
+      content: attack.payload,
+      attackMeta,
+      timestamp: new Date().toISOString(),
+    }
+    setMessages(prev => [...prev, userMsg])
+    setIsLoading(true)
+    setActiveTelemetry(null)
+
+    try {
+      const t0 = Date.now()
+      const res = await fetch('/api/mcp/invoke', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tool: attack.mcpTool, params: attack.mcpParams, airsEnabled: isProtected }),
+      })
+      const data = await res.json()
+      const roundTripMs = Date.now() - t0
+
+      const blocked  = data.blocked ?? false
+      const stage1   = data.stage1  ?? null
+      const stage2   = data.stage2  ?? null
+      const blockStage = data.blockStage ?? null
+
+      // Derive verdict label
+      const verdict = blocked ? 'BLOCKED' : stage1 ? 'ALLOWED' : 'DIRECT'
+
+      // Build human-readable content for the bubble
+      let content = null
+      let blockReason = null
+      if (blocked) {
+        const stage = blockStage === 2 ? 'Stage 2 (output scan)' : 'Stage 1 (input scan)'
+        blockReason = `MCP tool "${attack.mcpTool}" blocked by Prisma AIRS at ${stage}. Tool ${blockStage === 2 ? 'executed but output was suppressed' : 'never reached the MCP server'}.`
+      } else if (data.toolResult) {
+        // Summarise the tool output
+        const result = data.toolResult
+        if (result.content != null)       content = `Tool output:\n${String(result.content).slice(0, 400)}${String(result.content).length > 400 ? '…' : ''}`
+        else if (result.stdout != null)   content = `Code executed:\nstdout: ${result.stdout}\nstderr: ${result.stderr ?? ''}\nexit: ${result.returncode}`
+        else if (result.found != null)    content = `Memory lookup: found=${result.found}${result.value != null ? `, value="${result.value}"` : ''}`
+        else if (result.stored != null)   content = `Memory write: stored=${result.stored}`
+        else                              content = JSON.stringify(result, null, 2).slice(0, 400)
+      }
+
+      if (data.error) {
+        blockReason = `MCP tool error: ${data.error}`
+      }
+
+      // Build telemetry in the same shape PipelineTrace expects for MCP
+      const telemetry = {
+        stage1, stage2,
+        tool: attack.mcpTool,
+        params: attack.mcpParams,
+        toolResult: data.toolResult,
+        blocked, blockStage,
+        prompt: attack.payload,
+        attackMeta,
+        isMcpInvoke: true,   // flag so PipelineTrace uses the MCP-native shape
+        // Map stage1/stage2 into inputScan/outputScan shape for SCM URL + sidebar compat
+        inputScan: stage1 ? { scan_id: stage1.scan_id, tr_id: stage1.trId, action: stage1.action, category: stage1.category, prompt_detected: stage1.prompt_detected, latency_ms: stage1.latencyMs, requestBody: stage1.requestBody } : null,
+        outputScan: stage2 ? { scan_id: stage2.scan_id, tr_id: stage2.trId, action: stage2.action, category: stage2.category, response_detected: stage2.response_detected, latency_ms: stage2.latencyMs, requestBody: stage2.requestBody } : null,
+        summary: { verdict, category: (stage1 ?? stage2)?.category ?? 'unknown', threats_detected: Object.entries((stage1?.prompt_detected ?? stage2?.response_detected) ?? {}).filter(([,v]) => v).map(([k]) => k) },
+        timing: { airs_input_scan_ms: stage1?.latencyMs ?? null, airs_output_scan_ms: stage2?.latencyMs ?? null, total_ms: roundTripMs },
+        llm: {},
+      }
+
+      setMessages(prev => [...prev, {
+        id: `msg-${Date.now()}-assistant`,
+        role: 'assistant',
+        content,
+        blocked,
+        blockReason,
+        verdict,
+        riskScore: null,
+        tokensIn: null,
+        tokensOut: null,
+        timestamp: new Date().toISOString(),
+        traceId: null,
+        telemetry,
+      }])
+      setActiveTelemetry(telemetry)
+
+      const url = buildScmUrl(telemetry.inputScan)
+      if (url) dispatch({ type: 'SET_SCM_URL', payload: url })
+    } catch (err) {
+      setMessages(prev => [...prev, makeErrorMessage(`MCP error: ${err.message}`)])
+    } finally {
+      setIsLoading(false)
+    }
+  }, [isProtected, dispatch])
+
+  // Called from attack library — MCP attacks use real /api/mcp/invoke, others use /api/chat
   const sendAttack = useCallback((attack, backend, modelId) => {
+    if (attack.mcpTool) return sendMcpAttack(attack, backend, modelId)
     send({ payload: attack.payload, attackMeta: { label: attack.label, severity: attack.severity, technique: attack.technique }, backend, modelId })
-  }, [send])
+  }, [send, sendMcpAttack])
 
   // Called from free chat input
   const sendMessage = useCallback((text, backend, modelId) => {

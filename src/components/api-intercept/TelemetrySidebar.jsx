@@ -474,20 +474,380 @@ function SbSectionLabel({ children }) {
   return <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 pt-3 pb-1">{children}</div>
 }
 
+// ─── MCP tool name inference from attack label ────────────────────────────────
+const MCP_LABEL_TO_TOOL = {
+  'Path Traversal via Agent':      'read_file',
+  'OS Command Execution via Agent': 'execute_code',
+  'Persistent Memory Poisoning':   'set_memory',
+  'Tool Shadowing / Override':     'set_memory',
+  'PII Exfiltration via File Read': 'read_file',
+}
+
+function isMcpAttack(telemetry) {
+  const label = telemetry?.attackMeta?.label ?? ''
+  const tech  = telemetry?.attackMeta?.technique ?? ''
+  return MCP_LABEL_TO_TOOL[label] != null || tech.toLowerCase().includes('tool') || tech.toLowerCase().includes('memory store')
+}
+
+// ─── SCM-style Transaction Metadata card ─────────────────────────────────────
+function ScmTransactionCard({ trace, telemetry, isDark }) {
+  const isMcp = isMcpAttack(telemetry)
+  const inputScan = telemetry?.inputScan
+
+  const fields = [
+    { label: 'Session ID', value: inputScan?.tr_id ?? trace.id, mono: true },
+    { label: 'Scan ID',    value: inputScan?.scan_id, mono: true },
+    { label: 'Profile',    value: inputScan?.profile_name ?? trace.profile },
+    { label: 'Model',      value: trace.model ?? trace.backend },
+    { label: 'Environment', value: 'dev' },
+    { label: 'User ID',    value: 'demo-user' },
+  ].filter(f => f.value)
+
+  const cardBg     = isDark ? 'rgba(10,15,28,0.7)'      : 'rgba(0,48,135,0.04)'
+  const borderCol  = isDark ? 'rgba(255,255,255,0.10)'   : 'rgba(0,48,135,0.12)'
+  const dividerCol = isDark ? 'rgba(255,255,255,0.05)'   : 'rgba(0,48,135,0.08)'
+  const labelCol   = isDark ? '#475569'                  : '#94a3b8'
+  const valueCol   = isDark ? '#cbd5e1'                  : '#1e293b'
+
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ background: cardBg, border: `1px solid ${borderCol}` }}>
+      {/* Content type tags */}
+      <div className="flex items-center gap-2 px-3 py-2" style={{ borderBottom: `1px solid ${dividerCol}` }}>
+        <span className="text-[9px] font-bold uppercase tracking-widest mr-1" style={{ color: labelCol }}>Content Type</span>
+        <span className="px-2 py-0.5 rounded-full text-[9px] font-bold border" style={{ background: 'rgba(96,165,250,0.12)', borderColor: 'rgba(96,165,250,0.4)', color: '#93c5fd' }}>Prompt</span>
+        {isMcp && (
+          <span className="px-2 py-0.5 rounded-full text-[9px] font-bold border" style={{ background: 'rgba(20,184,166,0.12)', borderColor: 'rgba(20,184,166,0.4)', color: '#5eead4' }}>Tool</span>
+        )}
+      </div>
+
+      {/* Metadata grid */}
+      <div className="grid grid-cols-2 gap-0" style={{ borderColor: dividerCol }}>
+        {fields.map(({ label, value, mono }, i) => (
+          <div key={label} className="px-3 py-2" style={{
+            borderBottom: i < fields.length - 2 ? `1px solid ${dividerCol}` : 'none',
+            borderRight: i % 2 === 0 ? `1px solid ${dividerCol}` : 'none',
+          }}>
+            <div className="text-[9px] uppercase tracking-wide mb-0.5" style={{ color: labelCol }}>{label}</div>
+            <div className={`text-[10px] truncate ${mono ? 'font-mono' : 'font-medium'}`} style={{ color: valueCol }} title={value}>
+              {mono && value?.length > 14 ? `${value.slice(0, 8)}…${value.slice(-4)}` : value}
+              {mono && value && <SbCopyButton text={value} />}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── MCP Tool Event panel ─────────────────────────────────────────────────────
+function McpToolEventPanel({ telemetry, trace, isDark }) {
+  const attackLabel = telemetry?.attackMeta?.label ?? trace?.attack_label ?? ''
+  const toolName = MCP_LABEL_TO_TOOL[attackLabel] ?? 'mcp_tool'
+  const inputScan = telemetry?.inputScan
+  const snippet = telemetry?.prompt ?? trace?.prompt ?? ''
+
+  const cardBg      = isDark ? 'rgba(10,25,25,0.7)'       : 'rgba(20,184,166,0.04)'
+  const dividerCol  = isDark ? 'rgba(20,184,166,0.15)'     : 'rgba(20,184,166,0.18)'
+  const rowDivider  = isDark ? 'rgba(255,255,255,0.04)'    : 'rgba(0,0,0,0.06)'
+  const snippetBg   = isDark ? 'rgba(0,0,0,0.4)'          : 'rgba(0,0,0,0.04)'
+  const snippetBorder = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(20,184,166,0.2)'
+  const labelCol    = isDark ? '#475569'                   : '#94a3b8'
+  const valueCol    = isDark ? '#94a3b8'                   : '#334155'
+
+  const rows = [
+    { label: 'Tool Name',  value: toolName },
+    { label: 'Direction',  value: 'input' },
+    { label: 'Ecosystem',  value: 'mcp' },
+    { label: 'Method',     value: 'tools/call' },
+    { label: 'Server',     value: 'airs-mcp-demo-server' },
+  ]
+
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ background: cardBg, border: '1px solid rgba(20,184,166,0.2)' }}>
+      {/* Header */}
+      <div className="flex items-center gap-2 px-3 py-2" style={{ borderBottom: `1px solid ${dividerCol}`, background: 'rgba(20,184,166,0.07)' }}>
+        <Layers size={11} className="text-teal-400 flex-shrink-0" />
+        <span className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">Tool Event</span>
+        <span className="ml-auto text-[9px] font-mono text-teal-600">MCP · tools/call</span>
+      </div>
+
+      {/* Tool metadata table */}
+      <div>
+        {rows.map(({ label, value }, i) => (
+          <div key={label} className="flex items-center px-3 py-1.5" style={{ borderBottom: i < rows.length - 1 ? `1px solid ${rowDivider}` : 'none' }}>
+            <span className="text-[9px] w-20 flex-shrink-0" style={{ color: labelCol }}>{label}</span>
+            <span className="text-[10px] font-mono" style={{ color: label === 'Tool Name' ? '#5eead4' : label === 'Ecosystem' ? '#67e8f9' : valueCol, fontWeight: label === 'Tool Name' ? 700 : 400 }}>{value}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Violated snippet */}
+      {snippet && (
+        <div className="px-3 pb-3 pt-2" style={{ borderTop: `1px solid ${rowDivider}` }}>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[9px] uppercase tracking-wide" style={{ color: labelCol }}>Violated snippet</span>
+            <SbCopyButton text={snippet} />
+          </div>
+          <div
+            className="rounded-lg p-2 font-mono text-[10px] overflow-y-auto whitespace-pre-wrap break-words leading-relaxed"
+            style={{ background: snippetBg, border: `1px solid ${snippetBorder}`, maxHeight: '100px', color: isDark ? '#6ee7b7' : '#0f766e' }}
+          >
+            {snippet.length > 200 ? snippet.slice(0, 200) + '…' : snippet}
+          </div>
+        </div>
+      )}
+
+      {/* Scan ID badge */}
+      {inputScan?.scan_id && (
+        <div className="px-3 py-2 flex items-center gap-2" style={{ borderTop: `1px solid ${rowDivider}` }}>
+          <span className="text-[9px]" style={{ color: labelCol }}>scan_id</span>
+          <span className="text-[9px] font-mono flex-1 truncate" style={{ color: valueCol }}>{inputScan.scan_id}</span>
+          <SbCopyButton text={inputScan.scan_id} />
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── SCM-style Threat Snippets panel ─────────────────────────────────────────
+function ScmThreatPanel({ trace, telemetry, isDark }) {
+  const threats = trace.threats_detected ?? []
+  if (!threats.length) return null
+
+  const isMcp = isMcpAttack(telemetry)
+  const attackLabel = telemetry?.attackMeta?.label ?? trace.attack_label ?? ''
+  const toolName = MCP_LABEL_TO_TOOL[attackLabel] ?? 'mcp_tool'
+
+  const cardBg      = isDark ? 'rgba(10,12,22,0.85)'      : 'rgba(239,68,68,0.03)'
+  const dividerCol  = isDark ? 'rgba(255,255,255,0.06)'    : 'rgba(239,68,68,0.10)'
+  const subBg       = isDark ? 'rgba(0,0,0,0.3)'           : 'rgba(0,0,0,0.03)'
+  const subBorder   = isDark ? 'rgba(255,255,255,0.07)'    : 'rgba(239,68,68,0.12)'
+  const snippetCol  = isDark ? '#67e8f9'                   : '#0e7490'
+  const labelCol    = isDark ? '#475569'                   : '#94a3b8'
+  const threatNameCol = isDark ? '#e2e8f0'                 : '#1e293b'
+
+  const SEV_STYLE = {
+    critical: { label: 'Critical', bg: 'rgba(239,68,68,0.15)',  border: 'rgba(239,68,68,0.4)',  text: '#f87171' },
+    high:     { label: 'High',     bg: 'rgba(249,115,22,0.15)', border: 'rgba(249,115,22,0.4)', text: '#fb923c' },
+    medium:   { label: 'Medium',   bg: 'rgba(234,179,8,0.15)',  border: 'rgba(234,179,8,0.4)',  text: isDark ? '#facc15' : '#a16207' },
+    low:      { label: 'Low',      bg: 'rgba(148,163,184,0.1)', border: 'rgba(148,163,184,0.3)', text: '#94a3b8' },
+  }
+
+  const THREAT_META = {
+    injection:     { name: 'Prompt Injection',  sev: 'high' },
+    agent:         { name: 'Agent Manipulation', sev: 'high' },
+    toxic_content: { name: 'Toxic Content',      sev: 'medium' },
+    dlp:           { name: 'Data Leakage (DLP)', sev: 'high' },
+    url_cats:      { name: 'Malicious URL',      sev: 'medium' },
+    jailbreak:     { name: 'Jailbreak',          sev: 'critical' },
+  }
+
+  const snippet = telemetry?.prompt ?? trace.prompt ?? ''
+  const [open, setOpen] = useState(true)
+
+  return (
+    <div className="rounded-xl overflow-hidden" style={{ background: cardBg, border: `1px solid ${dividerCol}` }}>
+      {/* Header */}
+      <div className="px-3 py-2" style={{ borderBottom: `1px solid ${dividerCol}`, background: 'rgba(239,68,68,0.06)' }}>
+        <div className="flex items-center gap-2">
+          <ShieldX size={11} className="text-red-400 flex-shrink-0" />
+          <span className="text-[10px] font-bold text-red-400 uppercase tracking-wider flex-1">Threat Snippets</span>
+        </div>
+        <div className="text-[9px] mt-0.5 font-medium" style={{ color: labelCol }}>Profile: {telemetry?.inputScan?.profile_name ?? trace.profile ?? 'AIRS security profile'}</div>
+      </div>
+
+      {threats.map((threatKey, ti) => {
+        const meta = THREAT_META[threatKey] ?? { name: threatKey.replace(/_/g, ' '), sev: 'medium' }
+        const sevStyle = SEV_STYLE[meta.sev] ?? SEV_STYLE.medium
+
+        return (
+          <div key={threatKey} style={{ borderTop: ti > 0 ? `1px solid ${dividerCol}` : 'none' }}>
+            <button
+              onClick={() => setOpen(v => !v)}
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-black/[0.03]"
+            >
+              <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(239,68,68,0.2)', border: '1px solid rgba(239,68,68,0.4)' }}>
+                <ShieldX size={9} className="text-red-400" />
+              </div>
+              <span className="flex-1 text-[11px] font-semibold" style={{ color: threatNameCol }}>{meta.name}</span>
+              <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border" style={{ background: sevStyle.bg, borderColor: sevStyle.border, color: sevStyle.text }}>{sevStyle.label}</span>
+              <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.15 }}>
+                <ChevronDown size={11} className="text-slate-500" />
+              </motion.div>
+            </button>
+
+            <AnimatePresence initial={false}>
+              {open && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.15 }} className="overflow-hidden">
+                  <div className="px-3 pb-3 space-y-2">
+
+                    {/* Prompt violation */}
+                    <div className="rounded-lg overflow-hidden" style={{ background: subBg, border: `1px solid ${subBorder}` }}>
+                      <div className="flex items-center justify-between px-2.5 py-1.5" style={{ borderBottom: `1px solid ${subBorder}` }}>
+                        <span className="text-[9px]" style={{ color: labelCol }}>Prompt · <span className="font-bold" style={{ color: sevStyle.text }}>{sevStyle.label}</span></span>
+                        <span className="text-[9px]" style={{ color: labelCol }}>1 prompt has a violation</span>
+                      </div>
+                      <div className="p-2">
+                        <div className="text-[9px] mb-1" style={{ color: labelCol }}>Violated snippet #1</div>
+                        <div className="font-mono text-[10px] leading-relaxed" style={{ color: snippetCol }}>
+                          {snippet.length > 160 ? snippet.slice(0, 160) + '…' : snippet}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* MCP Tool violation */}
+                    {isMcp && (
+                      <div className="rounded-lg overflow-hidden" style={{ background: subBg, border: '1px solid rgba(20,184,166,0.2)' }}>
+                        <div className="flex items-center justify-between px-2.5 py-1.5" style={{ borderBottom: '1px solid rgba(20,184,166,0.15)' }}>
+                          <span className="text-[9px] text-teal-400 font-semibold">Tool</span>
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full border" style={{ background: 'rgba(148,163,184,0.1)', borderColor: 'rgba(148,163,184,0.3)', color: '#94a3b8' }}>Low</span>
+                        </div>
+                        <div className="px-2.5 py-2">
+                          <div className="text-[9px] mb-2" style={{ color: labelCol }}>1 violation for <span className="font-mono text-teal-400">{toolName}</span></div>
+                          <div className="grid grid-cols-5 gap-x-2 mb-2 text-[9px] font-semibold uppercase tracking-wide pb-1" style={{ color: labelCol, borderBottom: `1px solid ${dividerCol}` }}>
+                            <span>Tool Name</span><span>Direction</span><span>Ecosystem</span><span>Method</span><span>Server</span>
+                          </div>
+                          <div className="grid grid-cols-5 gap-x-2 mb-2 text-[10px] font-mono">
+                            <span style={{ color: '#5eead4', fontWeight: 700 }}>{toolName}</span>
+                            <span style={{ color: isDark ? '#94a3b8' : '#334155' }}>input</span>
+                            <span style={{ color: '#67e8f9' }}>mcp</span>
+                            <span style={{ color: isDark ? '#94a3b8' : '#334155' }}>tools/call</span>
+                            <span className="truncate" style={{ color: isDark ? '#64748b' : '#475569' }} title="airs-mcp-demo-server">airs-mcp-demo-server</span>
+                          </div>
+                          <div className="text-[9px] mb-1" style={{ color: labelCol }}>Violated snippet #2</div>
+                          <div
+                            className="rounded p-1.5 font-mono text-[10px] overflow-y-auto whitespace-pre-wrap break-words leading-relaxed"
+                            style={{ background: isDark ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0.04)', border: `1px solid ${dividerCol}`, maxHeight: '80px', color: snippetCol }}
+                          >
+                            {snippet.length > 120 ? snippet.slice(0, 120) + '…' : snippet}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ─── Syntax-highlighted JSON ──────────────────────────────────────────────────
+const HIGHLIGHT_KEYS = new Set(['verdict', 'category', 'action', 'blocked', 'threats_detected', 'scan_id', 'tr_id', 'profile_id', 'profile_name'])
+
+function HighlightedJson({ data }) {
+  const lines = JSON.stringify(data, null, 2).split('\n')
+  return (
+    <pre className="font-mono text-[11px] leading-relaxed whitespace-pre">
+      {lines.map((line, i) => {
+        // key: "value" — split on first colon
+        const keyMatch = line.match(/^(\s*)(")([\w_]+)(")(\s*:\s*)(.*)$/)
+        if (keyMatch) {
+          const [, indent, , key, , colon, rest] = keyMatch
+          const isImportant = HIGHLIGHT_KEYS.has(key)
+          const keyColor = isImportant ? '#67e8f9' : '#7dd3fc' // cyan-300 : sky-300
+          const rendered = renderValue(rest.trimEnd())
+          return (
+            <span key={i} style={{ display: 'block' }}>
+              <span style={{ color: '#64748b' }}>{indent}</span>
+              <span style={{ color: keyColor, fontWeight: isImportant ? 700 : 400 }}>"{key}"</span>
+              <span style={{ color: '#94a3b8' }}>{colon}</span>
+              {rendered}
+            </span>
+          )
+        }
+        // structural lines: {, }, [, ], etc.
+        return (
+          <span key={i} style={{ display: 'block', color: '#94a3b8' }}>{line}</span>
+        )
+      })}
+    </pre>
+  )
+}
+
+function renderValue(raw) {
+  if (raw === 'null,' || raw === 'null') return <span style={{ color: '#94a3b8' }}>{raw}</span>
+  if (raw === 'true,' || raw === 'true') return <span style={{ color: '#f472b6', fontWeight: 700 }}>{raw}</span>
+  if (raw === 'false,' || raw === 'false') return <span style={{ color: '#f472b6', fontWeight: 700 }}>{raw}</span>
+  if (/^-?\d/.test(raw)) return <span style={{ color: '#fb923c' }}>{raw}</span>
+  if (raw.startsWith('"')) {
+    const trailing = raw.endsWith(',') ? ',' : ''
+    const inner = trailing ? raw.slice(0, -1) : raw
+    // color special string values
+    const val = inner.slice(1, -1)
+    const isVerdict = ['BLOCKED', 'ALLOWED', 'DIRECT'].includes(val)
+    const isAction  = ['block', 'allow'].includes(val)
+    const isMalicious = ['malicious', 'benign'].includes(val)
+    const color = isVerdict
+      ? (val === 'BLOCKED' ? '#f87171' : val === 'ALLOWED' ? '#34d399' : '#94a3b8')
+      : isAction
+      ? (val === 'block' ? '#f87171' : '#34d399')
+      : isMalicious
+      ? (val === 'malicious' ? '#f87171' : '#34d399')
+      : '#86efac' // green-300 for normal strings
+    return <><span style={{ color, fontWeight: (isVerdict || isAction || isMalicious) ? 700 : 400 }}>{inner}</span><span style={{ color: '#94a3b8' }}>{trailing}</span></>
+  }
+  // arrays/objects opening brackets on same line
+  return <span style={{ color: '#94a3b8' }}>{raw}</span>
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export function TelemetrySidebar({ telemetry }) {
   const [sdkTab, setSdkTab] = useState('python')
   const [trace, setTrace]   = useState(null)
   const theme = useProtectionTheme()
-  const traceId = telemetry?.trace_id ?? null
+  const { state } = useAppContext()
+  const isDark = state.isDark !== false  // default dark
+  const traceId    = telemetry?.trace_id ?? null
+  const isMcpInvoke = !!telemetry?.isMcpInvoke
 
   useEffect(() => {
+    // MCP invoke path — no DB trace, build a synthetic trace from telemetry directly
+    if (isMcpInvoke && telemetry) {
+      const s1 = telemetry.stage1 ?? null
+      const s2 = telemetry.stage2 ?? null
+      const threats = Object.entries(s1?.prompt_detected ?? s2?.response_detected ?? {})
+        .filter(([, v]) => v).map(([k]) => k)
+      const verdict = telemetry.blocked ? 'BLOCKED' : s1 ? 'ALLOWED' : 'DIRECT'
+      const totalMs = (s1?.latencyMs ?? 0) + (s2?.latencyMs ?? 0)
+
+      // Build spans for Pipeline Flow
+      const spans = []
+      spans.push({ id: 'recv', name: 'user_prompt_received', latency_ms: 0, status: 'success', metadata: null })
+      if (s1) spans.push({ id: 'stage1', name: 'airs_input_scan', latency_ms: s1.latencyMs, status: s1.action === 'block' ? 'blocked' : 'success', metadata: { action: s1.action, category: s1.category, scan_id: s1.scan_id } })
+      if (s2) spans.push({ id: 'stage2', name: 'airs_output_scan', latency_ms: s2.latencyMs, status: s2.action === 'block' ? 'blocked' : 'success', metadata: { action: s2.action, category: s2.category, scan_id: s2.scan_id } })
+      spans.push({ id: 'done', name: 'response_delivered', latency_ms: 0, status: telemetry.blocked ? 'blocked' : 'success', metadata: null })
+
+      setTrace({
+        id: s1?.trId ?? `mcp-${Date.now()}`,
+        verdict,
+        category: (s1 ?? s2)?.category ?? 'unknown',
+        threats_detected: threats,
+        backend: 'mcp',
+        model: `${telemetry.tool ?? 'tool'} · airs-mcp-demo-server`,
+        profile: telemetry.inputScan?.profile_name ?? null,
+        total_ms: totalMs || null,
+        airs_input_ms: s1?.latencyMs ?? null,
+        airs_output_ms: s2?.latencyMs ?? null,
+        llm_ms: null,
+        tokens_in: null,
+        tokens_out: null,
+        prompt: telemetry.prompt ?? null,
+        attack_label: telemetry.attackMeta?.label ?? null,
+        attack_severity: telemetry.attackMeta?.severity ?? null,
+        spans,
+      })
+      return
+    }
     if (!traceId) { setTrace(null); return }
     fetch(`/api/traces/${traceId}`)
       .then(r => r.json())
       .then(setTrace)
       .catch(console.error)
-  }, [traceId])
+  }, [traceId, isMcpInvoke, telemetry])
 
   const totalMs = trace?.total_ms ?? 0
 
@@ -544,17 +904,8 @@ export function TelemetrySidebar({ telemetry }) {
           <div className="space-y-0">
             <div className="px-4 pt-4 space-y-3">
               <SbVerdictBanner trace={trace} />
-
-              {(trace.model || trace.backend) && (
-                <div className="flex items-center gap-2 px-3 py-2 rounded-full bg-white/[0.04] border border-white/[0.08] w-fit">
-                  <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" />
-                  <span className="text-[11px] font-semibold text-slate-400">
-                    {trace.model && trace.model !== trace.backend
-                      ? `${trace.model} · ${trace.backend === 'vertex' ? 'Vertex AI' : trace.backend === 'bedrock' ? 'AWS Bedrock' : trace.backend}`
-                      : trace.backend}
-                  </span>
-                </div>
-              )}
+              <ScmTransactionCard trace={trace} telemetry={telemetry} isDark={isDark} />
+              {isMcpAttack(telemetry) && <McpToolEventPanel telemetry={telemetry} trace={trace} isDark={isDark} />}
             </div>
 
             {/* Token Usage */}
@@ -585,22 +936,42 @@ export function TelemetrySidebar({ telemetry }) {
               </>
             )}
 
-            {/* Attack label */}
+            {/* Attack label + SCM-style threat snippets */}
             {trace.attack_label && (
-              <div className="px-4 pb-3">
-                <div className="flex items-center gap-3 p-3 rounded-xl bg-orange-500/[0.07] border border-orange-500/20">
+              <div className="px-4 pb-1">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-orange-500/[0.07] border border-orange-500/20 mb-3">
                   <AlertTriangle size={14} className="text-orange-400 flex-shrink-0" />
                   <div className="flex-1">
                     <div className="text-xs font-bold text-orange-300">{trace.attack_label}</div>
-                    <div className="text-[10px] text-orange-500/70 mt-0.5">{trace.attack_severity} severity</div>
+                    <div className="text-[10px] text-orange-500/70 mt-0.5">{trace.attack_severity} severity · {telemetry?.attackMeta?.technique ?? ''}</div>
                   </div>
                   <span className="text-[9px] font-bold px-2 py-1 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-400 uppercase">{trace.attack_severity}</span>
                 </div>
+                <ScmThreatPanel trace={trace} telemetry={telemetry} isDark={isDark} />
               </div>
             )}
 
             <div className="border-t border-white/[0.06] mt-2" />
           </div>
+        )}
+
+        {/* ── Raw JSON ── */}
+        {trace && (
+          <Section title="Raw JSON" icon={Hash} iconColor="text-cyan-400" defaultOpen={false}>
+            {/* Always dark — code editor style regardless of theme */}
+            <div
+              className="rounded-xl overflow-auto"
+              style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.10)', maxHeight: '420px' }}
+            >
+              <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                <span className="text-[9px] font-bold text-cyan-500 uppercase tracking-widest">trace object</span>
+                <SbCopyButton text={JSON.stringify(trace, null, 2)} />
+              </div>
+              <div className="p-3">
+                <HighlightedJson data={trace} />
+              </div>
+            </div>
+          </Section>
         )}
 
         {/* ── Dev Corner ── */}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Zap, AlertTriangle, Scissors, Database, Terminal } from 'lucide-react'
+import { ChevronDown, Zap, AlertTriangle, Scissors, Database, Terminal, Wrench } from 'lucide-react'
 import { StatusBadge } from '../shared/StatusBadge'
 
 const ICON_MAP = {
@@ -9,6 +9,7 @@ const ICON_MAP = {
   Scissors: Scissors,
   Database: Database,
   AlertTriangle: AlertTriangle,
+  Wrench: Wrench,
 }
 
 const COLOR_CLASSES = {
@@ -17,6 +18,7 @@ const COLOR_CLASSES = {
   yellow: { text: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' },
   purple: { text: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
   pink: { text: 'text-pink-400', bg: 'bg-pink-500/10', border: 'border-pink-500/20' },
+  teal: { text: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/20' },
 }
 
 export function AttackCategory({ category, onSelectAttack, defaultOpen = false }) {
@@ -39,6 +41,11 @@ export function AttackCategory({ category, onSelectAttack, defaultOpen = false }
         <span className={`flex-1 text-xs font-semibold ${isOpen ? colors.text : 'text-slate-400'} transition-colors`}>
           {category.label}
         </span>
+        {category.badge && (
+          <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded ${colors.bg} ${colors.text} mr-1`}>
+            {category.badge}
+          </span>
+        )}
         <span className="text-[10px] text-slate-600 mr-1">{category.attacks.length}</span>
         <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
           <ChevronDown size={12} className="text-slate-500" />
