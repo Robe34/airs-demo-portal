@@ -5,6 +5,7 @@ import {
   Zap, ArrowDownToLine, ArrowUpFromLine,
   AlertTriangle, CheckCircle2, ShieldX, ShieldCheck,
   Layers, FileCode, Clock, History, Copy,
+  FileJson, ShieldAlert,
 } from 'lucide-react'
 import { CodeBlock } from '../shared/CodeBlock'
 import { DEV_CORNER_TABS } from '../../data/mockData'
@@ -794,6 +795,36 @@ function renderValue(raw) {
   return <span style={{ color: '#94a3b8' }}>{raw}</span>
 }
 
+// ─── Raw AIRS payload viewer block ────────────────────────────────────────────
+// Used for both the verbatim sync scan response and the detailed threat report.
+function AirsRawBlock({ heading, sublabel, data, emptyMsg = 'No data', maxHeight = '360px' }) {
+  if (!data) {
+    return (
+      <div className="text-[10px] text-slate-600 italic px-1 py-2">{emptyMsg}</div>
+    )
+  }
+  const json = JSON.stringify(data, null, 2)
+  return (
+    <div className="mb-3">
+      <div className="flex items-center justify-between mb-1.5">
+        <div className="flex items-baseline gap-2 min-w-0">
+          <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">{heading}</span>
+          {sublabel && <span className="text-[9px] text-slate-600 font-mono truncate">{sublabel}</span>}
+        </div>
+        <SbCopyButton text={json} />
+      </div>
+      <div
+        className="rounded-xl overflow-auto"
+        style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.10)', maxHeight }}
+      >
+        <div className="p-3">
+          <HighlightedJson data={data} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 export function TelemetrySidebar({ telemetry }) {
   const [sdkTab, setSdkTab] = useState('python')
@@ -955,16 +986,87 @@ export function TelemetrySidebar({ telemetry }) {
           </div>
         )}
 
-        {/* ── Raw JSON ── */}
+        {/* ── Raw AIRS Sync Response (verbatim per pan.dev sync scan endpoint) ── */}
+        {(telemetry?.inputScan?.rawResponse || telemetry?.outputScan?.rawResponse) && (
+          <Section
+            title="Raw AIRS Sync Response"
+            icon={FileJson}
+            iconColor="text-cyan-400"
+            defaultOpen
+            badge="POST /v1/scan/sync/request"
+            badgeColor="bg-cyan-500/15 text-cyan-300 font-mono"
+          >
+            <div className="text-[10px] text-slate-500 mb-3 leading-relaxed">
+              Verbatim response body from the AIRS sync scan endpoint — including <span className="font-mono text-cyan-400">prompt_detected</span>, <span className="font-mono text-cyan-400">prompt_masked_data</span> (when profile action = mask), and <span className="font-mono text-cyan-400">prompt_detection_details</span>.
+            </div>
+
+            {telemetry?.inputScan?.rawResponse && (
+              <AirsRawBlock
+                heading="Input scan (prompt)"
+                sublabel={telemetry.inputScan.scan_id}
+                data={telemetry.inputScan.rawResponse}
+              />
+            )}
+            {telemetry?.outputScan?.rawResponse && (
+              <AirsRawBlock
+                heading="Output scan (response)"
+                sublabel={telemetry.outputScan.scan_id}
+                data={telemetry.outputScan.rawResponse}
+              />
+            )}
+            {!telemetry?.outputScan?.rawResponse && telemetry?.inputScan?.action === 'block' && (
+              <div className="text-[10px] text-slate-600 italic">
+                Output scan skipped — input scan blocked the request before LLM execution.
+              </div>
+            )}
+          </Section>
+        )}
+
+        {/* ── Detailed Threat Scan Reports (GET /v1/scan/reports) ── */}
+        {(telemetry?.inputScan?.report || telemetry?.outputScan?.report) && (
+          <Section
+            title="Threat Scan Reports"
+            icon={ShieldAlert}
+            iconColor="text-orange-400"
+            defaultOpen={false}
+            badge="GET /v1/scan/reports"
+            badgeColor="bg-orange-500/15 text-orange-300 font-mono"
+          >
+            <div className="text-[10px] text-slate-500 mb-3 leading-relaxed">
+              Detailed per-detector report — <span className="font-mono text-orange-300">detection_results[]</span> with <span className="font-mono text-orange-300">dlp_report</span>, <span className="font-mono text-orange-300">pi_report</span>, <span className="font-mono text-orange-300">tc_report</span>, <span className="font-mono text-orange-300">mc_report</span>, etc. (including data pattern offsets and DLP profile metadata).
+            </div>
+
+            {telemetry?.inputScan?.report && (
+              <AirsRawBlock
+                heading="Input scan report"
+                sublabel={telemetry.inputScan.report_id}
+                data={telemetry.inputScan.report.error
+                  ? { error: telemetry.inputScan.report.error, hint: 'Report may not be available immediately after scan — try again in a few seconds.' }
+                  : telemetry.inputScan.report.data}
+              />
+            )}
+            {telemetry?.outputScan?.report && (
+              <AirsRawBlock
+                heading="Output scan report"
+                sublabel={telemetry.outputScan.report_id}
+                data={telemetry.outputScan.report.error
+                  ? { error: telemetry.outputScan.report.error, hint: 'Report may not be available immediately after scan — try again in a few seconds.' }
+                  : telemetry.outputScan.report.data}
+              />
+            )}
+          </Section>
+        )}
+
+        {/* ── Raw JSON (persisted trace object) ── */}
         {trace && (
-          <Section title="Raw JSON" icon={Hash} iconColor="text-cyan-400" defaultOpen={false}>
+          <Section title="Trace Object" icon={Hash} iconColor="text-sky-400" defaultOpen={false}>
             {/* Always dark — code editor style regardless of theme */}
             <div
               className="rounded-xl overflow-auto"
               style={{ background: '#0d1117', border: '1px solid rgba(255,255,255,0.10)', maxHeight: '420px' }}
             >
               <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-                <span className="text-[9px] font-bold text-cyan-500 uppercase tracking-widest">trace object</span>
+                <span className="text-[9px] font-bold text-sky-500 uppercase tracking-widest">persisted trace</span>
                 <SbCopyButton text={JSON.stringify(trace, null, 2)} />
               </div>
               <div className="p-3">

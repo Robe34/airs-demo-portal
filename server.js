@@ -45,6 +45,29 @@ function awsCredentials() {
 }
 
 // ─── AIRS scan helper ─────────────────────────────────────────────────────────
+// Fetch detailed threat scan report for one or more report_ids.
+// GET /v1/scan/reports?report_ids=R1,R2  (max 5 per call).
+async function airsFetchReports(reportIds) {
+  if (!reportIds || (Array.isArray(reportIds) && reportIds.length === 0)) return null
+  const ids = Array.isArray(reportIds) ? reportIds.join(',') : String(reportIds)
+  const url = `${process.env.AIRS_BASE_URL}/v1/scan/reports?report_ids=${encodeURIComponent(ids)}`
+  const t0 = Date.now()
+  const res = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Accept: 'application/json',
+      'x-pan-token': process.env.AIRS_API_KEY,
+    },
+  })
+  if (!res.ok) {
+    const text = await res.text().catch(() => '')
+    console.warn(`[AIRS] reports fetch failed (${res.status}): ${text.slice(0, 200)}`)
+    return { data: null, error: `${res.status}: ${text.slice(0, 200)}`, latencyMs: Date.now() - t0, url }
+  }
+  const data = await res.json()
+  return { data, latencyMs: Date.now() - t0, url }
+}
+
 async function airscan(prompt, response = null, model = 'unknown') {
   const body = {
     tr_id: `citadel-${Date.now()}`,
@@ -54,8 +77,9 @@ async function airscan(prompt, response = null, model = 'unknown') {
   }
 
   const t0 = Date.now()
+  const url = `${process.env.AIRS_BASE_URL}/v1/scan/sync/request`
   const res = await fetch(
-    `${process.env.AIRS_BASE_URL}/v1/scan/sync/request`,
+    url,
     {
       method: 'POST',
       headers: {
@@ -73,7 +97,21 @@ async function airscan(prompt, response = null, model = 'unknown') {
   }
 
   const data = await res.json()
-  return { data, latencyMs: Date.now() - t0, requestBody: body }
+  const latencyMs = Date.now() - t0
+
+  // Fetch the detailed threat scan report (verbatim — for the UI's Raw section).
+  // Best-effort: report endpoint sometimes lags behind the sync scan; never fails the call.
+  let report = null
+  if (data?.report_id) {
+    try {
+      report = await airsFetchReports(data.report_id)
+    } catch (err) {
+      console.warn('[AIRS] report fetch threw:', err.message)
+      report = { data: null, error: err.message }
+    }
+  }
+
+  return { data, latencyMs, requestBody: body, requestUrl: url, report }
 }
 
 // ─── Azure OpenAI helper ──────────────────────────────────────────────────────
@@ -226,6 +264,11 @@ function buildTelemetry({ airsPromptScan, airsResponseScan, llmLatencyMs, modelL
       prompt_detected: promptDetected,
       prompt_masked_data:        airsPromptScan.data.prompt_masked_data ?? null,
       prompt_detection_details:  airsPromptScan.data.prompt_detection_details ?? null,
+      // Verbatim AIRS payloads — for "Raw API Response" inspection in the UI
+      rawRequest:  airsPromptScan.requestBody ?? null,
+      rawResponse: airsPromptScan.data ?? null,
+      requestUrl:  airsPromptScan.requestUrl ?? null,
+      report:      airsPromptScan.report ?? null,  // GET /v1/scan/reports?report_ids=…
     },
 
     // ── Output scan (response) — full raw AIRS payload ────────────────────
@@ -246,6 +289,11 @@ function buildTelemetry({ airsPromptScan, airsResponseScan, llmLatencyMs, modelL
       response_detected: responseDetected,
       response_masked_data:       airsResponseScan.data.response_masked_data ?? null,
       response_detection_details: airsResponseScan.data.response_detection_details ?? null,
+      // Verbatim AIRS payloads — for "Raw API Response" inspection in the UI
+      rawRequest:  airsResponseScan.requestBody ?? null,
+      rawResponse: airsResponseScan.data ?? null,
+      requestUrl:  airsResponseScan.requestUrl ?? null,
+      report:      airsResponseScan.report ?? null,
     } : null,
 
     // ── Timing & LLM stats ────────────────────────────────────────────────

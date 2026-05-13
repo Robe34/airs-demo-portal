@@ -322,6 +322,10 @@ function PipelineTrace({ message }) {
     // Extract tool_event from requestBody (what SCM shows as "Tool Event")
     const toolEvent = (input?.requestBody ?? rawStage1?.requestBody)?.contents?.[0]?.tool_event?.metadata
     const trId = isMcpInvoke ? tel.stage1?.trId : (input?.tr_id)
+    // DLP-masked content (only present when AIRS profile is configured to mask)
+    const maskedIn = !isMcpInvoke ? (input?.prompt_masked_data ?? input?.rawResponse?.prompt_masked_data ?? null) : null
+    const maskedPreviewIn = maskedIn?.data ? (maskedIn.data.length > 80 ? `${maskedIn.data.slice(0, 80)}…` : maskedIn.data) : null
+    const patternsIn = maskedIn?.pattern_detections?.map(p => p.pattern).join(', ') || null
     steps.push({
       num: nums[ni++],
       color: blocked ? '#f87171' : '#34d399',
@@ -334,14 +338,24 @@ function PipelineTrace({ message }) {
         { label: 'category', value: s?.category, mono: true },
         threats.length ? { label: 'threats', value: threats.join(', '), accent: '#fca5a5' } : null,
         { label: 'scan_id', value: s?.scan_id, mono: true, copy: true },
+        !isMcpInvoke && input?.report_id ? { label: 'report_id', value: input.report_id, mono: true, copy: true } : null,
         trId ? { label: 'session_id', value: trId, mono: true, copy: true } : null,
+        // DLP masking — only visible when profile action is mask/allow-with-mask
+        maskedPreviewIn ? { label: 'masked', value: maskedPreviewIn, mono: true, accent: '#fbbf24' } : null,
+        patternsIn ? { label: 'patterns', value: patternsIn, accent: '#fbbf24' } : null,
         // Tool Event fields — matches SCM "Tool Event" section
         toolEvent?.tool_invoked ? { label: 'te:tool', value: toolEvent.tool_invoked, mono: true, accent: '#5eead4' } : null,
         toolEvent?.ecosystem   ? { label: 'te:ecosystem', value: toolEvent.ecosystem, mono: true } : null,
         toolEvent?.method      ? { label: 'te:method', value: toolEvent.method, mono: true } : null,
         toolEvent?.server_name ? { label: 'te:server', value: toolEvent.server_name, mono: true } : null,
       ].filter(Boolean),
-      payload: isMcpInvoke ? (rawStage1?.requestBody ?? s) : (input?.requestBody ?? s),
+      payload: isMcpInvoke
+        ? { request: rawStage1?.requestBody ?? null, response: s }
+        : {
+            request:  input?.rawRequest  ?? input?.requestBody ?? null,
+            response: input?.rawResponse ?? null,
+            report:   input?.report?.data ?? input?.report ?? null,
+          },
       payloadKey: 'stage1',
       note: blocked ? (isMcpInvoke ? 'Tool params blocked at Stage 1 — MCP server never called.' : 'Prompt blocked — request never reached the LLM.') : null,
     })
@@ -411,6 +425,10 @@ function PipelineTrace({ message }) {
     const blocked2 = s2?.action === 'block'
     const toolEvent2 = (output?.requestBody ?? rawStage2?.requestBody)?.contents?.[0]?.tool_event?.metadata
     const trId2 = isMcpInvoke ? tel.stage2?.trId : (output?.tr_id)
+    // DLP-masked content on the response side
+    const maskedOut = !isMcpInvoke ? (output?.response_masked_data ?? output?.rawResponse?.response_masked_data ?? null) : null
+    const maskedPreviewOut = maskedOut?.data ? (maskedOut.data.length > 80 ? `${maskedOut.data.slice(0, 80)}…` : maskedOut.data) : null
+    const patternsOut = maskedOut?.pattern_detections?.map(p => p.pattern).join(', ') || null
     steps.push({
       num: nums[ni++],
       color: blocked2 ? '#f87171' : '#a78bfa',
@@ -423,11 +441,20 @@ function PipelineTrace({ message }) {
         { label: 'category', value: s2?.category, mono: true },
         threats2.length ? { label: 'threats', value: threats2.join(', '), accent: '#fca5a5' } : null,
         { label: 'scan_id', value: s2?.scan_id, mono: true, copy: true },
+        !isMcpInvoke && output?.report_id ? { label: 'report_id', value: output.report_id, mono: true, copy: true } : null,
         trId2 ? { label: 'session_id', value: trId2, mono: true, copy: true } : null,
+        maskedPreviewOut ? { label: 'masked', value: maskedPreviewOut, mono: true, accent: '#fbbf24' } : null,
+        patternsOut ? { label: 'patterns', value: patternsOut, accent: '#fbbf24' } : null,
         toolEvent2?.tool_invoked ? { label: 'te:tool', value: toolEvent2.tool_invoked, mono: true, accent: '#5eead4' } : null,
         toolEvent2?.ecosystem   ? { label: 'te:ecosystem', value: toolEvent2.ecosystem, mono: true } : null,
       ].filter(Boolean),
-      payload: isMcpInvoke ? (rawStage2?.requestBody ?? s2) : (output?.requestBody ?? s2),
+      payload: isMcpInvoke
+        ? { request: rawStage2?.requestBody ?? null, response: s2 }
+        : {
+            request:  output?.rawRequest  ?? output?.requestBody ?? null,
+            response: output?.rawResponse ?? null,
+            report:   output?.report?.data ?? output?.report ?? null,
+          },
       payloadKey: 'stage2',
       note: blocked2 ? 'Tool output suppressed — response not returned to agent.' : null,
     })
