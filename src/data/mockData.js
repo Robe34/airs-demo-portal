@@ -1,3 +1,5 @@
+import { JBB_CATEGORY } from './jbbAttacks'
+
 // ─── Attack Categories ────────────────────────────────────────────────────────
 export const ATTACK_CATEGORIES = [
   {
@@ -406,6 +408,7 @@ export const ATTACK_CATEGORIES = [
       },
     ],
   },
+  JBB_CATEGORY,
 ]
 
 // ─── Telemetry Mock Responses ─────────────────────────────────────────────────

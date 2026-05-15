@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronDown, Zap, AlertTriangle, Scissors, Database, Terminal, Wrench } from 'lucide-react'
+import { ChevronDown, Zap, AlertTriangle, Scissors, Database, Terminal, Wrench, Skull } from 'lucide-react'
 import { StatusBadge } from '../shared/StatusBadge'
 
 const ICON_MAP = {
@@ -10,6 +10,7 @@ const ICON_MAP = {
   Database: Database,
   AlertTriangle: AlertTriangle,
   Wrench: Wrench,
+  Skull: Skull,
 }
 
 const COLOR_CLASSES = {
@@ -21,10 +22,83 @@ const COLOR_CLASSES = {
   teal: { text: 'text-teal-400', bg: 'bg-teal-500/10', border: 'border-teal-500/20' },
 }
 
+// Total attacks helper — supports both flat (attacks[]) and nested (subCategories[]) shapes.
+function countAttacks(category) {
+  if (Array.isArray(category?.attacks)) return category.attacks.length
+  if (Array.isArray(category?.subCategories)) return category.subCategories.reduce((a, sc) => a + (sc.attacks?.length ?? 0), 0)
+  return 0
+}
+
+// ─── Single attack row (used by both flat and nested modes) ───────────────────
+function AttackRow({ attack, index, onSelect }) {
+  return (
+    <motion.button
+      key={attack.id}
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: Math.min(index * 0.03, 0.4) }}
+      onClick={() => onSelect(attack)}
+      className="w-full flex items-start gap-2 p-2 rounded-lg text-left hover:bg-white/5 border border-transparent hover:border-white/10 transition-all duration-150 group"
+    >
+      <div className="flex-1 min-w-0">
+        <div className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors truncate">
+          {attack.label}
+        </div>
+        <div className="text-[10px] text-slate-600 truncate">{attack.technique}</div>
+      </div>
+      <StatusBadge status={attack.severity} className="flex-shrink-0 mt-0.5" />
+    </motion.button>
+  )
+}
+
+// ─── Nested sub-category accordion ────────────────────────────────────────────
+function SubCategory({ subCategory, parentColor, onSelectAttack, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen)
+  const colors = COLOR_CLASSES[parentColor] || COLOR_CLASSES.pink
+  const count = subCategory.attacks?.length ?? 0
+
+  return (
+    <div className={`rounded-md border overflow-hidden transition-colors duration-150 ${open ? 'border-white/10' : 'border-white/5'}`}>
+      <button
+        onClick={() => setOpen(v => !v)}
+        className={`w-full flex items-center gap-2 px-2.5 py-1.5 text-left transition-colors ${open ? 'bg-white/[0.04]' : 'hover:bg-white/[0.03]'}`}
+      >
+        <span className={`flex-1 text-[11px] font-semibold ${open ? colors.text : 'text-slate-400'}`}>
+          {subCategory.label}
+        </span>
+        <span className="text-[9px] text-slate-600 mr-1">{count}</span>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.18 }}>
+          <ChevronDown size={10} className="text-slate-600" />
+        </motion.span>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.18, ease: 'easeInOut' }}
+            className="overflow-hidden"
+          >
+            <div className="px-1.5 pb-1.5 pt-1 space-y-0.5 bg-black/20">
+              {subCategory.attacks?.map((attack, i) => (
+                <AttackRow key={attack.id} attack={attack} index={i} onSelect={onSelectAttack} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
 export function AttackCategory({ category, onSelectAttack, defaultOpen = false }) {
   const [isOpen, setIsOpen] = useState(defaultOpen)
   const Icon = ICON_MAP[category.icon] || Zap
   const colors = COLOR_CLASSES[category.color] || COLOR_CLASSES.red
+  const isNested = Array.isArray(category.subCategories)
+  const total = countAttacks(category)
 
   return (
     <div className={`rounded-lg border ${isOpen ? colors.border : 'border-white/10'} overflow-hidden transition-colors duration-200`}>
@@ -46,13 +120,13 @@ export function AttackCategory({ category, onSelectAttack, defaultOpen = false }
             {category.badge}
           </span>
         )}
-        <span className="text-[10px] text-slate-600 mr-1">{category.attacks.length}</span>
+        <span className="text-[10px] text-slate-600 mr-1">{total}</span>
         <motion.span animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
           <ChevronDown size={12} className="text-slate-500" />
         </motion.span>
       </button>
 
-      {/* Attacks list */}
+      {/* Body — flat attacks list OR nested sub-categories */}
       <AnimatePresence initial={false}>
         {isOpen && (
           <motion.div
@@ -62,25 +136,19 @@ export function AttackCategory({ category, onSelectAttack, defaultOpen = false }
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="px-2 pb-2 space-y-1 bg-black/20">
-              {category.attacks.map((attack, i) => (
-                <motion.button
-                  key={attack.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  onClick={() => onSelectAttack(attack)}
-                  className="w-full flex items-start gap-2 p-2 rounded-lg text-left hover:bg-white/5 border border-transparent hover:border-white/10 transition-all duration-150 group"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="text-xs font-medium text-slate-300 group-hover:text-white transition-colors truncate">
-                      {attack.label}
-                    </div>
-                    <div className="text-[10px] text-slate-600 truncate">{attack.technique}</div>
-                  </div>
-                  <StatusBadge status={attack.severity} className="flex-shrink-0 mt-0.5" />
-                </motion.button>
-              ))}
+            <div className={`pb-2 ${isNested ? 'px-2 pt-2 space-y-1 bg-black/30' : 'px-2 space-y-1 bg-black/20'}`}>
+              {isNested
+                ? category.subCategories.map(sc => (
+                    <SubCategory
+                      key={sc.id}
+                      subCategory={sc}
+                      parentColor={category.color}
+                      onSelectAttack={onSelectAttack}
+                    />
+                  ))
+                : category.attacks?.map((attack, i) => (
+                    <AttackRow key={attack.id} attack={attack} index={i} onSelect={onSelectAttack} />
+                  ))}
             </div>
           </motion.div>
         )}

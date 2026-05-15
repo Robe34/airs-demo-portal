@@ -7,7 +7,10 @@ import { useProtectionTheme } from '../../hooks/useProtectionTheme'
 
 export function AttackLibrary({ onSelectAttack, backend, model, onBackendChange, onModelChange }) {
   const theme = useProtectionTheme()
-  const totalAttacks = ATTACK_CATEGORIES.reduce((a, c) => a + c.attacks.length, 0)
+  const totalAttacks = ATTACK_CATEGORIES.reduce(
+    (a, c) => a + (c.attacks?.length ?? c.subCategories?.reduce((s, sc) => s + (sc.attacks?.length ?? 0), 0) ?? 0),
+    0
+  )
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
