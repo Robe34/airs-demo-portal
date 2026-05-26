@@ -61,25 +61,20 @@ You need accounts and credentials for the cloud providers you want to use. Each 
 
 ## Setup
 
-### 1. Clone & install
+### 1. Clone & run setup
 
 ```bash
-git clone <repo-url>
-cd sudo-airs-local-demo-vertex-bedrock
-npm install
+git clone https://github.com/Robe34/airs-demo-portal.git
+cd airs-demo-portal
+bash setup.sh
 ```
 
-### 2. Python environment (required even without Model Scanner)
+`setup.sh` installs Node dependencies, creates both Python venvs (scanner + MCP), and copies `.env.example` → `.env` on first run.
+
+### 2. Configure `.env`
 
 ```bash
-python3 -m venv airs-model-scanner-main/.venv
-airs-model-scanner-main/.venv/bin/pip install fastapi "uvicorn[standard]" requests python-dotenv python-multipart
-```
-
-### 3. Configure `.env`
-
-```bash
-cp .env.example .env
+# .env was created by setup.sh — edit it now
 ```
 
 #### Prisma AIRS *(required for protection mode)*

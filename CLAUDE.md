@@ -30,17 +30,12 @@ lsof -ti tcp:8001 | xargs kill -9 2>/dev/null
 ## First-time Setup
 
 ```bash
-# Python environment (required even without Model Scanner)
-python3 -m venv airs-model-scanner-main/.venv
-airs-model-scanner-main/.venv/bin/pip install fastapi "uvicorn[standard]" requests python-dotenv python-multipart
-
-# Python environment for MCP server
-python3 -m venv mcp-server/.venv
-# install MCP server deps per mcp-server/ requirements
-
-cp .env.example .env
-# Fill in credentials — see Environment Variables section below
+bash setup.sh        # creates both Python venvs + copies .env.example → .env
+# Edit .env with credentials, then:
+npm run dev
 ```
+
+`npm run dev` is also self-healing — if either Python venv is missing it creates it automatically via `scripts/run-scanner.sh` and `scripts/run-mcp.sh`.
 
 ## Architecture
 
