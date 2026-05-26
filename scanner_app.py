@@ -111,16 +111,9 @@ def get_scan_group_for_source(source_type: ScanSourceType) -> UUID:
         
     Returns:
         UUID of the security group to use for scanning
-        
-    Raises:
-        ValueError: If HuggingFace scan requested but HF_SCAN_GROUP_UUID not configured
     """
     if source_type == ScanSourceType.HUGGINGFACE:
-        if HF_SCAN_GROUP is None:
-            raise ValueError(
-                "HuggingFace scans require HF_SCAN_GROUP_UUID environment variable to be set."
-            )
-        return HF_SCAN_GROUP
+        return HF_SCAN_GROUP if HF_SCAN_GROUP is not None else LOCAL_SCAN_GROUP
     return LOCAL_SCAN_GROUP
 
 AIMS_BASE_URL = "https://api.sase.paloaltonetworks.com/aims"
